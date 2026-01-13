@@ -5,9 +5,9 @@ package dns
 import (
 	"fmt"
 
-	"github.com/go-acme/lego/v4/challenge"
+	"github.com/digicert/lego/v4/challenge"
 {{- range $provider := .Providers }}
-     "github.com/go-acme/lego/v4/providers/dns/{{ cleanName $provider.Code }}"
+     "github.com/digicert/lego/v4/providers/dns/{{ cleanName $provider.Code }}"
 {{- end}}
 )
 

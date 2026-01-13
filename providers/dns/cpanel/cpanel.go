@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/go-acme/lego/v4/providers/dns/cpanel/internal/cpanel"
-	"github.com/go-acme/lego/v4/providers/dns/cpanel/internal/shared"
-	"github.com/go-acme/lego/v4/providers/dns/cpanel/internal/whm"
-	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v4/challenge"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/providers/dns/cpanel/internal/cpanel"
+	"github.com/digicert/lego/v4/providers/dns/cpanel/internal/shared"
+	"github.com/digicert/lego/v4/providers/dns/cpanel/internal/whm"
+	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
 )
 
 // Environment variables names.

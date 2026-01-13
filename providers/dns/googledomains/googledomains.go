@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/challenge"
+	"github.com/digicert/lego/v4/challenge/dns01"
 )
 
 // Environment variables names.

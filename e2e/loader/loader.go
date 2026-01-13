@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-acme/lego/v4/platform/wait"
+	"github.com/digicert/lego/v4/platform/wait"
 	"github.com/ldez/grignotin/goenv"
 )
 

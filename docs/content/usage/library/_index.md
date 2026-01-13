@@ -10,7 +10,7 @@ Lego can be used as a Go Library.
 
 ## GoDoc
 
-The GoDoc can be found here: [Go Reference](https://pkg.go.dev/github.com/go-acme/lego/v4).
+The GoDoc can be found here: [Go Reference](https://pkg.go.dev/github.com/digicert/lego/v4).
 
 ## Usage
 
@@ -27,12 +27,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-acme/lego/v4/certcrypto"
-	"github.com/go-acme/lego/v4/certificate"
-	"github.com/go-acme/lego/v4/challenge/http01"
-	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
-	"github.com/go-acme/lego/v4/lego"
-	"github.com/go-acme/lego/v4/registration"
+	"github.com/digicert/lego/v4/certcrypto"
+	"github.com/digicert/lego/v4/certificate"
+	"github.com/digicert/lego/v4/challenge/http01"
+	"github.com/digicert/lego/v4/challenge/tlsalpn01"
+	"github.com/digicert/lego/v4/lego"
+	"github.com/digicert/lego/v4/registration"
 )
 
 // You'll need a user or account type that implements acme.User

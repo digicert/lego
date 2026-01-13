@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/go-acme/lego/v4/log"
-	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/log"
+	"github.com/digicert/lego/v4/platform/config/env"
 	"github.com/nrdcg/oci-go-sdk/common/v1065"
 )
 

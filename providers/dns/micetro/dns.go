@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jitendra-vaghela/digicert-lego/v4/challenge/dns01"
-	"github.com/jitendra-vaghela/digicert-lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/platform/config/env"
 )
 
 const (

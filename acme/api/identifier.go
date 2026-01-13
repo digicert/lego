@@ -6,7 +6,7 @@ import (
 	"net"
 	"slices"
 
-	"github.com/go-acme/lego/v4/acme"
+	"github.com/digicert/lego/v4/acme"
 )
 
 func createIdentifiers(domains []string) []acme.Identifier {

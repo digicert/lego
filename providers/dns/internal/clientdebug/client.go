@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/platform/config/env"
 )
 
 const replacement = "***"

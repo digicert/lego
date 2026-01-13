@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/challenge"
+	"github.com/digicert/lego/v4/platform/config/env"
 )
 
 // Environment variables names.

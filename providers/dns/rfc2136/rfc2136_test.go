@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/platform/tester"
-	"github.com/go-acme/lego/v4/platform/tester/dnsmock"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v4/platform/tester/dnsmock"
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/require"
 )

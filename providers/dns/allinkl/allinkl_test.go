@@ -3,7 +3,7 @@ package allinkl
 import (
 	"testing"
 
-	"github.com/go-acme/lego/v4/platform/tester"
+	"github.com/digicert/lego/v4/platform/tester"
 	"github.com/stretchr/testify/require"
 )
 
