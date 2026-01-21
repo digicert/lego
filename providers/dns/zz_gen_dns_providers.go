@@ -25,6 +25,7 @@ import (
 	"github.com/digicert/lego/v4/providers/dns/binarylane"
 	"github.com/digicert/lego/v4/providers/dns/bindman"
 	"github.com/digicert/lego/v4/providers/dns/bluecat"
+	"github.com/digicert/lego/v4/providers/dns/bluecatv2"
 	"github.com/digicert/lego/v4/providers/dns/bookmyname"
 	"github.com/digicert/lego/v4/providers/dns/brandit"
 	"github.com/digicert/lego/v4/providers/dns/bunny"
@@ -41,6 +42,7 @@ import (
 	"github.com/digicert/lego/v4/providers/dns/constellix"
 	"github.com/digicert/lego/v4/providers/dns/corenetworks"
 	"github.com/digicert/lego/v4/providers/dns/cpanel"
+	"github.com/digicert/lego/v4/providers/dns/ddnss"
 	"github.com/digicert/lego/v4/providers/dns/derak"
 	"github.com/digicert/lego/v4/providers/dns/desec"
 	"github.com/digicert/lego/v4/providers/dns/designate"
@@ -233,6 +235,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return bindman.NewDNSProvider()
 	case "bluecat":
 		return bluecat.NewDNSProvider()
+	case "bluecatv2":
+		return bluecatv2.NewDNSProvider()
 	case "bookmyname":
 		return bookmyname.NewDNSProvider()
 	case "brandit":
@@ -265,6 +269,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return corenetworks.NewDNSProvider()
 	case "cpanel":
 		return cpanel.NewDNSProvider()
+	case "ddnss":
+		return ddnss.NewDNSProvider()
 	case "derak":
 		return derak.NewDNSProvider()
 	case "desec":
