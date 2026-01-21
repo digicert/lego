@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/challenge"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/platform/config/env"
 	"github.com/iij/doapi"
 	"github.com/iij/doapi/protocol"
 	"github.com/miekg/dns"

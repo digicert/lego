@@ -9,11 +9,11 @@ import (
 	"slices"
 	"time"
 
-	"github.com/go-acme/lego/v4/acme/api"
-	"github.com/go-acme/lego/v4/certcrypto"
-	"github.com/go-acme/lego/v4/certificate"
-	"github.com/go-acme/lego/v4/lego"
-	"github.com/go-acme/lego/v4/log"
+	"github.com/digicert/lego/v4/acme/api"
+	"github.com/digicert/lego/v4/certcrypto"
+	"github.com/digicert/lego/v4/certificate"
+	"github.com/digicert/lego/v4/lego"
+	"github.com/digicert/lego/v4/log"
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 )

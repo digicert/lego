@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
-	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
 	querystring "github.com/google/go-querystring/query"
 )
 

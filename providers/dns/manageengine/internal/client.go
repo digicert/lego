@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 )
 
 const defaultBaseURL = "https://clouddns.manageengine.com/v1"

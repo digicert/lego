@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 )
 
 const baseAPIURL = "https://api.servercow.de/dns/v1/domains"

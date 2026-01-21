@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 )
 
 // DefaultIdentityEndpoint the default API identity endpoint.

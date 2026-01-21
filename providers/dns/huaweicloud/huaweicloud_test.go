@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-acme/lego/v4/platform/tester"
+	"github.com/digicert/lego/v4/platform/tester"
 	hwregion "github.com/huaweicloud/huaweicloud-sdk-go-v3/services/dns/v2/region"
 	"github.com/stretchr/testify/require"
 )

@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 )
 
 const defaultBaseURL = "https://selfhost.de/cgi-bin/api.pl"

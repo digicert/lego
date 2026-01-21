@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/log"
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/log"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 	"golang.org/x/oauth2"
 )
 

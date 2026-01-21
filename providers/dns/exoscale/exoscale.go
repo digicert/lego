@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/digicert/lego/v4/challenge"
+	"github.com/digicert/lego/v4/challenge/dns01"
+	"github.com/digicert/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
 	egoscale "github.com/exoscale/egoscale/v3"
 	"github.com/exoscale/egoscale/v3/credentials"
-	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/challenge/dns01"
-	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
-	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
 )
 
 // Environment variables names.
