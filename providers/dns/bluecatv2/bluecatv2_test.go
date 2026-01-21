@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-acme/lego/v4/platform/tester"
-	"github.com/go-acme/lego/v4/platform/tester/servermock"
-	"github.com/go-acme/lego/v4/providers/dns/bluecatv2/internal"
+	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v4/providers/dns/bluecatv2/internal"
 	"github.com/stretchr/testify/require"
 )
 

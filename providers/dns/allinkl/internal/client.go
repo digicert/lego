@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
-	"github.com/go-acme/lego/v4/platform/wait"
-	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v4/platform/wait"
+	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
 	"github.com/go-viper/mapstructure/v2"
 )
 
