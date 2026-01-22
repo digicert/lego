@@ -25,6 +25,15 @@ type Client struct {
 	httpClient *http.Client
 }
 
+// ListRecordsResponse represents a response for listing domain records.
+type ListRecordsResponse struct {
+	DomainRecords []Record `json:"domain_records"`
+	Links         struct{} `json:"links,omitempty"`
+	Meta          struct {
+		Total int `json:"total"`
+	} `json:"meta"`
+}
+
 // NewClient creates a new Client.
 func NewClient(hc *http.Client) *Client {
 	baseURL, _ := url.Parse(DefaultBaseURL)
@@ -63,6 +72,24 @@ func (c *Client) RemoveTxtRecord(ctx context.Context, zone string, recordID int)
 	}
 
 	return c.do(req, nil)
+}
+
+// ListRecords retrieves all domain records for the given zone.
+func (c *Client) ListRecords(ctx context.Context, zone string) ([]Record, error) {
+	endpoint := c.BaseURL.JoinPath("v2", "domains", dns01.UnFqdn(zone), "records")
+
+	req, err := newJSONRequest(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListRecordsResponse{}
+	err = c.do(req, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.DomainRecords, nil
 }
 
 func (c *Client) do(req *http.Request, result any) error {

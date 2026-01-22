@@ -1,8 +1,6 @@
 package dns01
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"strconv"
@@ -200,9 +198,7 @@ type ChallengeInfo struct {
 
 // GetChallengeInfo returns information used to create a DNS record which will fulfill the `dns-01` challenge.
 func GetChallengeInfo(domain, keyAuth string) ChallengeInfo {
-	keyAuthShaBytes := sha256.Sum256([]byte(keyAuth))
-	// base64URL encoding without padding
-	value := base64.RawURLEncoding.EncodeToString(keyAuthShaBytes[:sha256.Size])
+	value := keyAuth
 
 	ok, _ := strconv.ParseBool(os.Getenv("LEGO_DISABLE_CNAME_SUPPORT"))
 

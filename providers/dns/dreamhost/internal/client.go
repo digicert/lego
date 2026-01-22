@@ -18,6 +18,7 @@ const DefaultBaseURL = "https://api.dreamhost.com"
 const (
 	cmdAddRecord    = "dns-add_record"
 	cmdRemoveRecord = "dns-remove_record"
+	cmdListRecords  = "dns-list_records"
 )
 
 // Client the Dreamhost API client.
@@ -26,6 +27,21 @@ type Client struct {
 
 	BaseURL    string
 	HTTPClient *http.Client
+}
+
+// ListRecordsResponse represents the response for listing DNS records.
+type ListRecordsResponse struct {
+	Result string   `json:"result"`
+	Data   []Record `json:"data"`
+}
+
+// Record represents a DNS record.
+type Record struct {
+	Record   string `json:"record"`
+	Type     string `json:"type"`
+	Value    string `json:"value"`
+	Comment  string `json:"comment,omitempty"`
+	Editable int    `json:"editable"`
 }
 
 // NewClient Creates a new Client.
@@ -75,6 +91,53 @@ func (c *Client) buildEndpoint(action, domain, txt string) (*url.URL, error) {
 	endpoint.RawQuery = query.Encode()
 
 	return endpoint, nil
+}
+
+// ListRecords lists all DNS records.
+func (c *Client) ListRecords(ctx context.Context) ([]Record, error) {
+	endpoint, err := url.Parse(c.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	query := endpoint.Query()
+	query.Set("key", c.apiKey)
+	query.Set("cmd", cmdListRecords)
+	query.Set("format", "json")
+	endpoint.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), http.NoBody)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create request: %w", err)
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, errutils.NewHTTPDoError(req, err)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errutils.NewUnexpectedResponseStatusCodeError(req, resp)
+	}
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errutils.NewReadResponseError(req, resp.StatusCode, err)
+	}
+
+	var response ListRecordsResponse
+	err = json.Unmarshal(raw, &response)
+	if err != nil {
+		return nil, errutils.NewUnmarshalError(req, resp.StatusCode, raw, err)
+	}
+
+	if response.Result == "error" {
+		return nil, fmt.Errorf("list records failed: %v", response.Data)
+	}
+
+	return response.Data, nil
 }
 
 // updateTxtRecord will either add or remove a TXT record.

@@ -111,10 +111,26 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
+	fqdn := dns01.UnFqdn(info.EffectiveFQDN)
 
-	err := d.client.RemoveRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	records, err := d.client.ListRecords(context.Background())
 	if err != nil {
 		return fmt.Errorf("dreamhost: %w", err)
+	}
+
+	var lastError error
+
+	for _, record := range records {
+		if record.Record == fqdn && record.Type == "TXT" {
+			err := d.client.RemoveRecord(context.Background(), fqdn, record.Value)
+			if err != nil {
+				lastError = err
+			}
+		}
+	}
+
+	if lastError != nil {
+		return fmt.Errorf("dreamhost: %w", lastError)
 	}
 
 	return nil
