@@ -1,4 +1,4 @@
-package micetro
+package bluecatmicetro
 
 import (
 	"bytes"
@@ -77,7 +77,7 @@ func (c *Client) login() error {
 
 	if resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("micetro: login failed: %s: %s", resp.Status, string(b))
+		return fmt.Errorf("bluecatmicetro: login failed: %s: %s", resp.Status, string(b))
 	}
 
 	var response struct {
@@ -91,7 +91,7 @@ func (c *Client) login() error {
 	}
 
 	if response.Result.Session == "" {
-		return fmt.Errorf("micetro: empty session key returned")
+		return fmt.Errorf("bluecatmicetro: empty session key returned")
 	}
 
 	c.sessionKey = response.Result.Session
@@ -143,7 +143,7 @@ func (c *Client) listZones() ([]string, error) {
 
 	if resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("micetro: listZones failed: %s: %s", resp.Status, string(b))
+		return nil, fmt.Errorf("bluecatmicetro: listZones failed: %s: %s", resp.Status, string(b))
 	}
 
 	var wrapper zoneListResponse
@@ -196,7 +196,7 @@ func (c *Client) AddTXTRecord(zone, name, value string, ttl int) error {
 
 	if resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("micetro: AddTXTRecord failed: %s: %s", resp.Status, string(b))
+		return fmt.Errorf("bluecatmicetro: AddTXTRecord failed: %s: %s", resp.Status, string(b))
 	}
 
 	return nil
@@ -221,7 +221,7 @@ func (c *Client) DeleteTXTRecord(zone, name string) error {
 
 	if resp.StatusCode >= 300 && resp.StatusCode != http.StatusNotFound {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("micetro: DeleteTXTRecord failed: %s: %s", resp.Status, string(b))
+		return fmt.Errorf("bluecatmicetro: DeleteTXTRecord failed: %s: %s", resp.Status, string(b))
 	}
 
 	return nil

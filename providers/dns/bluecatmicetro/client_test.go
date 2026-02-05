@@ -1,4 +1,4 @@
-package micetro
+package bluecatmicetro
 
 import (
 	"fmt"
@@ -52,7 +52,7 @@ func TestAddAndDeleteTXTRecord(t *testing.T) {
 	}
 
 	// test delete
-	if err := client.DeleteTXTRecord("example.com.", "_acme-challenge.www", "dummy-value"); err != nil {
+	if err := client.DeleteTXTRecord("example.com.", "_acme-challenge.www"); err != nil {
 		t.Fatalf("DeleteTXTRecord failed: %v", err)
 	}
 }

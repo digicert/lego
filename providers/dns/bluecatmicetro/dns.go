@@ -1,4 +1,4 @@
-package micetro
+package bluecatmicetro
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	envNamespace = "MICETRO_"
+	envNamespace = "BLUECAT_MICETRO_"
 
 	envEndpoint  = envNamespace + "ENDPOINT" // e.g., https://micetro.example/mmws/api/v2
 	envAPIKey    = envNamespace + "API_KEY"
@@ -51,10 +51,10 @@ func NewDNSProvider() (*DNSProvider, error) {
 
 func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 	if cfg.Endpoint == "" {
-		return nil, fmt.Errorf("micetro: %s must be set", envEndpoint)
+		return nil, fmt.Errorf("bluecatmicetro: %s must be set", envEndpoint)
 	}
 	if cfg.APIKey == "" && (cfg.Username == "" || cfg.Password == "") {
-		return nil, fmt.Errorf("micetro: provide either %s or %s/%s", envAPIKey, envUsername, envPassword)
+		return nil, fmt.Errorf("bluecatmicetro: provide either %s or %s/%s", envAPIKey, envUsername, envPassword)
 	}
 
 	client := NewClient(cfg)
@@ -70,7 +70,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {
-		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, domain)
+		return fmt.Errorf("bluecatmicetro: %w (%s)", ErrZoneNotFound, domain)
 	}
 
 	return d.client.AddTXTRecord(zoneName, relative, info.Value, d.cfg.TTL)
@@ -81,7 +81,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {
-		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, domain)
+		return fmt.Errorf("bluecatmicetro: %w (%s)", ErrZoneNotFound, domain)
 	}
 
 	return d.client.DeleteTXTRecord(zoneName, relative)

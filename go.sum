@@ -324,6 +324,7 @@ github.com/go-acme/tencentclouddnspod v1.1.25/go.mod h1:XXfzp0AYV7UAUsHKT6R0KAUJ
 github.com/go-acme/tencentedgdeone v1.1.48 h1:WLyLBsRVhSLFmtbEFXk0naLODSQn7X6J0Fc/qR8xVUk=
 github.com/go-acme/tencentedgdeone v1.1.48/go.mod h1:mu6tA+bPhlSd+CKUfzRikE0mfxmTlBI6dVTn9LY9dRI=
 github.com/go-cmd/cmd v1.0.5/go.mod h1:y8q8qlK5wQibcw63djSl/ntiHUHXHGdCkPk0j4QeW4s=
+github.com/go-cmd/cmd v1.4.1/go.mod h1:tbBenttXtZU4c5djS1o7PWL5pd2xAr5sIqH1kGdNiRc=
 github.com/go-errors/errors v1.0.1 h1:LUHzmkK3GUKUrL/1gfBUxAHzcev3apQlezX/+O7ma6w=
 github.com/go-errors/errors v1.0.1/go.mod h1:f4zRHt4oKfwPJE5k8C9vpYG+aDHdBFUsgrm6/TyX73Q=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
