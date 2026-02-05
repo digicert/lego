@@ -14,9 +14,9 @@ import (
 )
 
 type Client struct {
-	baseURL    string
-	username   string
-	password   string
+	baseURL  string
+	username string
+	password string
 
 	sessionKey string
 	mu         sync.Mutex
@@ -29,7 +29,7 @@ func NewClient(cfg *Config) *Client {
 	base = strings.TrimSuffix(base, "/v2")
 
 	return &Client{
-		baseURL: base,
+		baseURL:  base,
 		username: cfg.Username,
 		password: cfg.Password,
 		httpClient: &http.Client{
@@ -134,7 +134,7 @@ type zoneListResponse struct {
 
 func (c *Client) listZones() ([]string, error) {
 	u, _ := url.Parse(c.baseURL)
-	u.Path = path.Join(u.Path, "v2",  "dnsZones")
+	u.Path = path.Join(u.Path, "v2", "dnsZones")
 	resp, err := c.doRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -172,10 +172,10 @@ func (c *Client) AddTXTRecord(zone, name, value string, ttl int) error {
 	}
 
 	rec := map[string]interface{}{
-		"name": fqdn,
-		"type": "TXT",
-		"data": value,
-		"ttl":  ttl,
+		"name":    fqdn,
+		"type":    "TXT",
+		"data":    value,
+		"ttl":     ttl,
 		"enabled": true,
 	}
 
@@ -202,7 +202,7 @@ func (c *Client) AddTXTRecord(zone, name, value string, ttl int) error {
 	return nil
 }
 
-func (c *Client) DeleteTXTRecord(zone, name, value string) error {
+func (c *Client) DeleteTXTRecord(zone, name string) error {
 	var fqdn string
 	if strings.HasSuffix(name, ".") {
 		fqdn = name

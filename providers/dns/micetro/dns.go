@@ -66,25 +66,25 @@ func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 }
 
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneName, relative := FindBestZoneForFQDN(d.client, fqdn)
+	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {
-		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, fqdn)
+		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, domain)
 	}
 
-	return d.client.AddTXTRecord(zoneName, relative, value, d.cfg.TTL)
+	return d.client.AddTXTRecord(zoneName, relative, info.Value, d.cfg.TTL)
 }
 
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneName, relative := FindBestZoneForFQDN(d.client, fqdn)
+	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {
-		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, fqdn)
+		return fmt.Errorf("micetro: %w (%s)", ErrZoneNotFound, domain)
 	}
 
-	return d.client.DeleteTXTRecord(zoneName, relative, value)
+	return d.client.DeleteTXTRecord(zoneName, relative)
 }
 
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
