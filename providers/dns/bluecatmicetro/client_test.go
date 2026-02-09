@@ -1,58 +1,121 @@
 package bluecatmicetro
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
-func TestAddAndDeleteTXTRecord(t *testing.T) {
-	mux := http.NewServeMux()
-
-	// list zones
-	mux.HandleFunc("/dnsZones", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"result":{"dnsZones":[{"ref":"dnsZones/1","name":"example.com.","displayName":"example.com."}],"totalResults":1}}`)
-	})
-
-	// accept POST to create record
-	mux.HandleFunc("/dnsZones/example.com./dnsRecords", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "method", http.StatusMethodNotAllowed)
+func TestLoginSuccess(t *testing.T) {
+	// Mock server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v2/micetro/sessions" && r.Method == http.MethodPost {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"result":{"session":"mock-session-key"}}`))
 			return
 		}
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, `{"result":{}}`)
-	})
-
-	// accept DELETE
-	mux.HandleFunc("/dnsRecords/_acme-challenge.www.example.com.", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodDelete {
-			http.Error(w, "method", http.StatusMethodNotAllowed)
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
-	})
-
-	server := httptest.NewServer(mux)
+		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
+	}))
 	defer server.Close()
 
-	cfg := &Config{
+	client := NewClient(&Config{
 		Endpoint: server.URL,
-		APIKey:   "testkey",
-		TTL:      60,
+		Username: "user",
+		Password: "pass",
+	})
+
+	if err := client.login(); err != nil {
+		t.Fatalf("expected login success, got %v", err)
 	}
 
-	client := NewClient(cfg)
+	if client.sessionKey != "mock-session-key" {
+		t.Fatalf("expected session key to be set")
+	}
+}
 
-	// test add
-	if err := client.AddTXTRecord("example.com.", "_acme-challenge.www", "dummy-value", 60); err != nil {
-		t.Fatalf("AddTXTRecord failed: %v", err)
+func TestAddTXTRecord(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/v2/dnsZones/zone1/dnsRecords") && r.Method == http.MethodPost {
+			rec := r.URL.Query().Get("dnsRecord")
+			if !strings.Contains(rec, "TXT") {
+				t.Fatalf("expected TXT record in query, got %s", rec)
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		if r.URL.Path == "/v2/micetro/sessions" {
+			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			return
+		}
+		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
+	}))
+	defer server.Close()
+
+	client := NewClient(&Config{
+		Endpoint: server.URL,
+		Username: "user",
+		Password: "pass",
+	})
+
+	err := client.AddTXTRecord("zone1", "test", "token", 60)
+	if err != nil {
+		t.Fatalf("expected AddTXTRecord success, got %v", err)
+	}
+}
+
+func TestDeleteTXTRecord(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v2/dnsRecords/test.zone1." && r.Method == http.MethodDelete {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		if r.URL.Path == "/v2/micetro/sessions" {
+			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			return
+		}
+		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
+	}))
+	defer server.Close()
+
+	client := NewClient(&Config{
+		Endpoint: server.URL,
+		Username: "user",
+		Password: "pass",
+	})
+
+	err := client.DeleteTXTRecord("zone1", "test")
+	if err != nil {
+		t.Fatalf("expected DeleteTXTRecord success, got %v", err)
+	}
+}
+
+func TestListZones(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v2/dnsZones" && r.Method == http.MethodGet {
+			w.Write([]byte(`{"result":{"dnsZones":[{"name":"zone1."},{"name":"zone2."}]}}`))
+			return
+		}
+		if r.URL.Path == "/v2/micetro/sessions" {
+			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			return
+		}
+		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
+	}))
+	defer server.Close()
+
+	client := NewClient(&Config{
+		Endpoint: server.URL,
+		Username: "user",
+		Password: "pass",
+	})
+
+	zones, err := client.listZones()
+	if err != nil {
+		t.Fatalf("expected ListZones success, got %v", err)
 	}
 
-	// test delete
-	if err := client.DeleteTXTRecord("example.com.", "_acme-challenge.www"); err != nil {
-		t.Fatalf("DeleteTXTRecord failed: %v", err)
+	if len(zones) != 2 || zones[0] != "zone1" || zones[1] != "zone2" {
+		t.Fatalf("unexpected zones returned: %v", zones)
 	}
 }

@@ -11,31 +11,26 @@ import (
 const (
 	envNamespace = "BLUECAT_MICETRO_"
 
-	envEndpoint  = envNamespace + "ENDPOINT" // e.g., https://micetro.example/mmws/api/v2
-	envAPIKey    = envNamespace + "API_KEY"
-	envUsername  = envNamespace + "USERNAME"
-	envPassword  = envNamespace + "PASSWORD"
-	envTLSVerify = envNamespace + "TLS_VERIFY"
-	envTTL       = envNamespace + "TTL"
+	envEndpoint = envNamespace + "ENDPOINT" // e.g., https://micetro.example/mmws/api/v2
+	envUsername = envNamespace + "USERNAME"
+	envPassword = envNamespace + "PASSWORD"
+	envTTL      = envNamespace + "TTL"
 )
 
 type Config struct {
-	Endpoint  string
-	APIKey    string
-	Username  string
-	Password  string
-	TLSVerify bool
-	TTL       int
+	Endpoint string
+	APIKey   string
+	Username string
+	Password string
+	TTL      int
 }
 
 func NewDefaultConfig() *Config {
 	return &Config{
-		Endpoint:  env.GetOrDefaultString(envEndpoint, ""),
-		APIKey:    env.GetOrDefaultString(envAPIKey, ""),
-		Username:  env.GetOrDefaultString(envUsername, ""),
-		Password:  env.GetOrDefaultString(envPassword, ""),
-		TLSVerify: env.GetOrDefaultBool(envTLSVerify, true),
-		TTL:       env.GetOrDefaultInt(envTTL, 60),
+		Endpoint: env.GetOrDefaultString(envEndpoint, ""),
+		Username: env.GetOrDefaultString(envUsername, ""),
+		Password: env.GetOrDefaultString(envPassword, ""),
+		TTL:      env.GetOrDefaultInt(envTTL, 10),
 	}
 }
 
@@ -53,8 +48,8 @@ func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 	if cfg.Endpoint == "" {
 		return nil, fmt.Errorf("bluecatmicetro: %s must be set", envEndpoint)
 	}
-	if cfg.APIKey == "" && (cfg.Username == "" || cfg.Password == "") {
-		return nil, fmt.Errorf("bluecatmicetro: provide either %s or %s/%s", envAPIKey, envUsername, envPassword)
+	if cfg.Username == "" || cfg.Password == "" {
+		return nil, fmt.Errorf("bluecatmicetro: provide %s/%s", envUsername, envPassword)
 	}
 
 	client := NewClient(cfg)
