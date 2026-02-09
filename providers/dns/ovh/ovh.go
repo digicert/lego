@@ -217,15 +217,6 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	// get the record's unique ID from when we created it
-	d.recordIDsMu.Lock()
-	recordID, ok := d.recordIDs[token]
-	d.recordIDsMu.Unlock()
-
-	if !ok {
-		return fmt.Errorf("ovh: unknown record ID for '%s'", info.EffectiveFQDN)
-	}
-
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ovh: could not find zone for domain %q: %w", domain, err)
@@ -233,27 +224,83 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	authZone = dns01.UnFqdn(authZone)
 
-	reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", authZone, recordID)
-
-	err = d.client.Delete(reqURL, nil)
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
-		return fmt.Errorf("ovh: error when call OVH api to delete challenge record (%s): %w", reqURL, err)
+		return fmt.Errorf("ovh: %w", err)
 	}
 
-	// Apply the change
-	reqURL = fmt.Sprintf("/domain/zone/%s/refresh", authZone)
+	// Get all records for the zone
+	records, err := d.listTXTRecords(authZone)
+	if err != nil {
+		return fmt.Errorf("ovh: error listing TXT records: %w", err)
+	}
+
+	fmt.Printf("ovh: found %d TXT records for zone %s\n", len(records), authZone)
+
+	deletionCount := 0
+	// Delete records matching the FQDN
+	for _, record := range records {
+		if record.SubDomain == subDomain && record.FieldType == "TXT" {
+			reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", authZone, record.ID)
+
+			fmt.Printf("ovh: deleting TXT record ID %d with subdomain %s and value %s\n",
+				record.ID, record.SubDomain, record.Target)
+
+			err = d.client.Delete(reqURL, nil)
+			if err != nil {
+				return fmt.Errorf("ovh: error when call OVH api to delete challenge record (%s): %w", reqURL, err)
+			}
+
+			deletionCount++
+			fmt.Printf("ovh: successfully deleted TXT record ID %d\n", record.ID)
+		}
+	}
+
+	fmt.Printf("ovh: deleted %d TXT records for subdomain %s in zone %s\n", deletionCount, subDomain, authZone)
+
+	reqURL := fmt.Sprintf("/domain/zone/%s/refresh", authZone)
+	fmt.Printf("ovh: refreshing zone %s\n", authZone)
 
 	err = d.client.Post(reqURL, nil, nil)
 	if err != nil {
 		return fmt.Errorf("ovh: error when call api to refresh zone (%s): %w", reqURL, err)
 	}
 
-	// Delete record ID from map
-	d.recordIDsMu.Lock()
-	delete(d.recordIDs, token)
-	d.recordIDsMu.Unlock()
-
+	fmt.Printf("ovh: zone %s refreshed successfully\n", authZone)
 	return nil
+}
+
+// listTXTRecords lists all TXT records for the specified zone
+func (d *DNSProvider) listTXTRecords(zone string) ([]Record, error) {
+	// Get all record IDs for the zone
+	var recordIDs []int64
+	reqURL := fmt.Sprintf("/domain/zone/%s/record", zone)
+
+	// Using fieldType parameter for filtering directly in the API call
+	err := d.client.Get(reqURL, &recordIDs)
+	if err != nil {
+		return nil, fmt.Errorf("ovh: error getting record IDs: %w", err)
+	}
+
+	records := make([]Record, 0, len(recordIDs))
+
+	// Then get details for each record and filter by TXT type
+	for _, id := range recordIDs {
+		var record Record
+		reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", zone, id)
+
+		err := d.client.Get(reqURL, &record)
+		if err != nil {
+			return nil, fmt.Errorf("ovh: error getting record details for ID %d: %w", id, err)
+		}
+
+		// Only include TXT records
+		if record.FieldType == "TXT" {
+			records = append(records, record)
+		}
+	}
+
+	return records, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.

@@ -148,25 +148,43 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	if err != nil {
 		return fmt.Errorf("digitalocean: could not find zone for domain %q: %w", domain, err)
 	}
-
-	// get the record's unique ID from when we created it
+	fmt.Printf("digitalocean: cleaning up TXT records for domain %s, zone %s\n", domain, authZone)
+	// First try from our record ID map
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 
-	if !ok {
-		return fmt.Errorf("digitalocean: unknown record ID for '%s'", info.EffectiveFQDN)
+	if ok {
+		fmt.Printf("digitalocean: found record ID %d in map for token %s\n", recordID, token)
+		err = d.client.RemoveTxtRecord(context.Background(), authZone, recordID)
+		if err != nil {
+			return fmt.Errorf("digitalocean: failed to remove TXT record with ID %d: %w", recordID, err)
+		}
+
+		fmt.Printf("digitalocean: successfully deleted TXT record with ID %d\n", recordID)
+
+		// Delete record ID from map
+		d.recordIDsMu.Lock()
+		delete(d.recordIDs, token)
+		d.recordIDsMu.Unlock()
 	}
 
-	err = d.client.RemoveTxtRecord(context.Background(), authZone, recordID)
+	records, err := d.client.ListRecords(context.Background(), authZone)
 	if err != nil {
-		return fmt.Errorf("digitalocean: %w", err)
+		return fmt.Errorf("digitalocean: failed to list records for zone %s: %w", authZone, err)
 	}
 
-	// Delete record ID from map
-	d.recordIDsMu.Lock()
-	delete(d.recordIDs, token)
-	d.recordIDsMu.Unlock()
+	for _, record := range records {
+		if record.Type == "TXT" && record.Name == info.EffectiveFQDN {
+			fmt.Printf("digitalocean: found matching TXT record with ID %d for %s\n", record.ID, info.EffectiveFQDN)
 
+			err = d.client.RemoveTxtRecord(context.Background(), authZone, record.ID)
+			if err != nil {
+				return fmt.Errorf("digitalocean: failed to remove TXT record with ID %d: %w", record.ID, err)
+			}
+
+			fmt.Printf("digitalocean: successfully deleted TXT record with ID %d\n", record.ID)
+		}
+	}
 	return nil
 }
