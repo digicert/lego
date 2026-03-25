@@ -298,7 +298,7 @@ func TestGetChallengeInfo(t *testing.T) {
 	expected := ChallengeInfo{
 		FQDN:          "_acme-challenge.example.com.",
 		EffectiveFQDN: "_acme-challenge.example.com.",
-		Value:         "pmWkWSBCL51Bfkhn79xPuKBKHz__H6B-mY6G9_eieuM",
+		Value:         "123", // DigiCert fork: raw keyAuth (no SHA256/base64url)
 	}
 
 	assert.Equal(t, expected, info)
@@ -315,7 +315,7 @@ func TestGetChallengeInfo_CNAME(t *testing.T) {
 	expected := ChallengeInfo{
 		FQDN:          "_acme-challenge.example.com.",
 		EffectiveFQDN: "example.org.",
-		Value:         "pmWkWSBCL51Bfkhn79xPuKBKHz__H6B-mY6G9_eieuM",
+		Value:         "123", // DigiCert fork: raw keyAuth (no SHA256/base64url)
 	}
 
 	assert.Equal(t, expected, info)
@@ -334,7 +334,7 @@ func TestGetChallengeInfo_CNAME_disabled(t *testing.T) {
 	expected := ChallengeInfo{
 		FQDN:          "_acme-challenge.example.com.",
 		EffectiveFQDN: "_acme-challenge.example.com.",
-		Value:         "pmWkWSBCL51Bfkhn79xPuKBKHz__H6B-mY6G9_eieuM",
+		Value:         "123", // DigiCert fork: raw keyAuth (no SHA256/base64url)
 	}
 
 	assert.Equal(t, expected, info)
