@@ -1,6 +1,6 @@
 module github.com/digicert/lego/v4
 
-go 1.24.13
+go 1.25.0
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
