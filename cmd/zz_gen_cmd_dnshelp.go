@@ -19,6 +19,7 @@ func allDNSCodes() string {
 		"allinkl",
 		"alwaysdata",
 		"anexia",
+		"artfiles",
 		"arvancloud",
 		"auroradns",
 		"autodns",
@@ -48,6 +49,7 @@ func allDNSCodes() string {
 		"constellix",
 		"corenetworks",
 		"cpanel",
+		"czechia",
 		"ddnss",
 		"derak",
 		"desec",
@@ -72,6 +74,8 @@ func allDNSCodes() string {
 		"edgeone",
 		"efficientip",
 		"epik",
+		"eurodns",
+		"excedo",
 		"exec",
 		"exoscale",
 		"f5xc",
@@ -111,6 +115,7 @@ func allDNSCodes() string {
 		"jdcloud",
 		"joker",
 		"keyhelp",
+		"leaseweb",
 		"liara",
 		"lightsail",
 		"limacity",
@@ -131,10 +136,12 @@ func allDNSCodes() string {
 		"namecheap",
 		"namedotcom",
 		"namesilo",
+		"namesurfer",
 		"nearlyfreespeech",
 		"neodigit",
 		"netcup",
 		"netlify",
+		"netnod",
 		"nicmanager",
 		"nicru",
 		"nifcloud",
@@ -142,6 +149,7 @@ func allDNSCodes() string {
 		"nodion",
 		"ns1",
 		"octenium",
+		"onecloudru",
 		"oraclecloud",
 		"otc",
 		"ovh",
@@ -263,8 +271,10 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln(`Additional Configuration:`)
 		ew.writeln(`	- "ALICLOUD_HTTP_TIMEOUT":	API request timeout in seconds (Default: 10)`)
+		ew.writeln(`	- "ALICLOUD_LINE":	Line (Default: default)`)
 		ew.writeln(`	- "ALICLOUD_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
 		ew.writeln(`	- "ALICLOUD_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "ALICLOUD_REGION_ID":	Region ID (Default: cn-hangzhou)`)
 		ew.writeln(`	- "ALICLOUD_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 600)`)
 
 		ew.writeln()
@@ -354,6 +364,27 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/anexia`)
+
+	case "artfiles":
+		// generated from: providers/dns/artfiles/artfiles.toml
+		ew.writeln(`Configuration for ArtFiles.`)
+		ew.writeln(`Code:	'artfiles'`)
+		ew.writeln(`Since:	'v4.32.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "ARTFILES_PASSWORD":	API password`)
+		ew.writeln(`	- "ARTFILES_USERNAME":	API username`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "ARTFILES_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "ARTFILES_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "ARTFILES_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 360)`)
+		ew.writeln(`	- "ARTFILES_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/artfiles`)
 
 	case "arvancloud":
 		// generated from: providers/dns/arvancloud/arvancloud.toml
@@ -1000,6 +1031,26 @@ func displayDNSHelp(w io.Writer, name string) error {
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/cpanel`)
 
+	case "czechia":
+		// generated from: providers/dns/czechia/czechia.toml
+		ew.writeln(`Configuration for Czechia.`)
+		ew.writeln(`Code:	'czechia'`)
+		ew.writeln(`Since:	'v4.33.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "CZECHIA_TOKEN":	Authorization token`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "CZECHIA_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "CZECHIA_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "CZECHIA_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "CZECHIA_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/czechia`)
+
 	case "ddnss":
 		// generated from: providers/dns/ddnss/ddnss.toml
 		ew.writeln(`Configuration for DDnss (DynDNS Service).`)
@@ -1514,6 +1565,48 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/epik`)
+
+	case "eurodns":
+		// generated from: providers/dns/eurodns/eurodns.toml
+		ew.writeln(`Configuration for EuroDNS.`)
+		ew.writeln(`Code:	'eurodns'`)
+		ew.writeln(`Since:	'v4.33.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "EURODNS_API_KEY":	API key`)
+		ew.writeln(`	- "EURODNS_APP_ID":	Application ID`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "EURODNS_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "EURODNS_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "EURODNS_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "EURODNS_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 600)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/eurodns`)
+
+	case "excedo":
+		// generated from: providers/dns/excedo/excedo.toml
+		ew.writeln(`Configuration for Excedo.`)
+		ew.writeln(`Code:	'excedo'`)
+		ew.writeln(`Since:	'v4.33.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "EXCEDO_API_KEY":	API key`)
+		ew.writeln(`	- "EXCEDO_API_URL":	API base URL`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "EXCEDO_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "EXCEDO_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 10)`)
+		ew.writeln(`	- "EXCEDO_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 300)`)
+		ew.writeln(`	- "EXCEDO_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 60)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/excedo`)
 
 	case "exec":
 		// generated from: providers/dns/exec/exec.toml
@@ -2333,6 +2426,26 @@ func displayDNSHelp(w io.Writer, name string) error {
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/keyhelp`)
 
+	case "leaseweb":
+		// generated from: providers/dns/leaseweb/leaseweb.toml
+		ew.writeln(`Configuration for Leaseweb.`)
+		ew.writeln(`Code:	'leaseweb'`)
+		ew.writeln(`Since:	'v4.32.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "LEASEWEB_API_KEY":	API key`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "LEASEWEB_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "LEASEWEB_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "LEASEWEB_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "LEASEWEB_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/leaseweb`)
+
 	case "liara":
 		// generated from: providers/dns/liara/liara.toml
 		ew.writeln(`Configuration for Liara.`)
@@ -2348,6 +2461,7 @@ func displayDNSHelp(w io.Writer, name string) error {
 		ew.writeln(`	- "LIARA_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
 		ew.writeln(`	- "LIARA_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
 		ew.writeln(`	- "LIARA_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "LIARA_TEAM_ID":	The team ID to access services in a team`)
 		ew.writeln(`	- "LIARA_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 3600)`)
 
 		ew.writeln()
@@ -2740,6 +2854,30 @@ func displayDNSHelp(w io.Writer, name string) error {
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/namesilo`)
 
+	case "namesurfer":
+		// generated from: providers/dns/namesurfer/namesurfer.toml
+		ew.writeln(`Configuration for FusionLayer NameSurfer.`)
+		ew.writeln(`Code:	'namesurfer'`)
+		ew.writeln(`Since:	'v4.32.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "NAMESURFER_API_KEY":	API key name`)
+		ew.writeln(`	- "NAMESURFER_API_SECRET":	API secret`)
+		ew.writeln(`	- "NAMESURFER_BASE_URL":	The base URL of NameSurfer API (jsonrpc10) endpoint URL (e.g., https://foo.example.com:8443/API/NSService_10)`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "NAMESURFER_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "NAMESURFER_INSECURE_SKIP_VERIFY":	Whether to verify the API certificate`)
+		ew.writeln(`	- "NAMESURFER_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "NAMESURFER_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 120)`)
+		ew.writeln(`	- "NAMESURFER_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 300)`)
+		ew.writeln(`	- "NAMESURFER_VIEW":	DNS view name (optional, default: empty string)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/namesurfer`)
+
 	case "nearlyfreespeech":
 		// generated from: providers/dns/nearlyfreespeech/nearlyfreespeech.toml
 		ew.writeln(`Configuration for NearlyFreeSpeech.NET.`)
@@ -2822,6 +2960,26 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/netlify`)
+
+	case "netnod":
+		// generated from: providers/dns/netnod/netnod.toml
+		ew.writeln(`Configuration for Netnod.`)
+		ew.writeln(`Code:	'netnod'`)
+		ew.writeln(`Since:	'v4.34.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "NETNOD_TOKEN":	API token`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "NETNOD_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "NETNOD_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "NETNOD_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "NETNOD_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/netnod`)
 
 	case "nicmanager":
 		// generated from: providers/dns/nicmanager/nicmanager.toml
@@ -2971,6 +3129,26 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/octenium`)
+
+	case "onecloudru":
+		// generated from: providers/dns/onecloudru/onecloudru.toml
+		ew.writeln(`Configuration for 1cloud.ru.`)
+		ew.writeln(`Code:	'onecloudru'`)
+		ew.writeln(`Since:	'v4.34.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "ONECLOUDRU_TOKEN":	API token`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "ONECLOUDRU_HTTP_TIMEOUT":	API request timeout in seconds (Default: 30)`)
+		ew.writeln(`	- "ONECLOUDRU_POLLING_INTERVAL":	Time between DNS propagation check in seconds (Default: 2)`)
+		ew.writeln(`	- "ONECLOUDRU_PROPAGATION_TIMEOUT":	Maximum waiting time for DNS propagation in seconds (Default: 60)`)
+		ew.writeln(`	- "ONECLOUDRU_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 300)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/onecloudru`)
 
 	case "oraclecloud":
 		// generated from: providers/dns/oraclecloud/oraclecloud.toml
@@ -3303,7 +3481,7 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 	case "safedns":
 		// generated from: providers/dns/safedns/safedns.toml
-		ew.writeln(`Configuration for UKFast SafeDNS.`)
+		ew.writeln(`Configuration for ANS SafeDNS.`)
 		ew.writeln(`Code:	'safedns'`)
 		ew.writeln(`Since:	'v4.6.0'`)
 		ew.writeln()

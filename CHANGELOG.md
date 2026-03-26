@@ -6,10 +6,60 @@ Everybody thinks that the others will donate, but in the end, nobody does.
 
 So if you think that lego is worth it, please consider [donating](https://donate.ldez.dev).
 
+## v4.33.0
+
+- Release date: 2026-03-19
+- Tag: [v4.33.0](https://github.com/digicert/lego/releases/tag/v4.33.0)
+
+### Added
+
+- **[dnsprovider]** Add DNS provider for Excedo
+- **[dnsprovider]** Add DNS provider for EuroDNS
+- **[dnsprovider]** Add DNS provider for Czechia
+
+### Changed
+
+- **[lib]** feat: allow to Unwrap obtainError
+
+### Fixed
+
+- **[dnsprovider]** liara: add support for team ID
+- **[dnsprovider]** gigahostno: remove unused Zone fields
+
+## v4.32.0
+
+- Release date: 2026-02-19
+- Tag: [v4.32.0](https://github.com/digicert/lego/releases/tag/v4.32.0)
+
+### Added
+
+- **[dnsprovider]** Add DNS provider for ArtFiles
+- **[dnsprovider]** Add DNS provider for Leaseweb
+- **[dnsprovider]** Add DNS provider for FusionLayer NameSurfer
+- **[dnsprovider]** Add DNS provider for DDNSS
+- **[dnsprovider]** Add DNS provider for Bluecat v2
+- **[dnsprovider]** Add DNS provider for TodayNIC/时代互联
+- **[dnsprovider]** Add DNS provider for DNSExit
+- **[dnsprovider]** alidns: add line record option
+
+### Changed
+
+- **[dnsprovider]** azure: reinforces deprecation
+- **[dnsprovider]** allinkl: detect zone through API
+
+### Fixed
+
+- **[ari]** fix: implement parsing for Retry-After header according to RFC 7231
+- **[dnsprovider]** namesurfer: fix updateDNSHost
+- **[dnsprovider]** timewebcloud: fix subdomain support
+- **[dnsprovider]** fix: deduplicate authz for DNS01 challenge
+- **[lib,cli]** fix: use IPs to define the main domain
+- **[lib]** fix: preserve domain order
+
 ## v4.31.0
 
 - Release date: 2026-01-08
-- Tag: [v4.31.0](https://github.com/go-acme/lego/releases/tag/v4.31.0)
+- Tag: [v4.31.0](https://github.com/digicert/lego/releases/tag/v4.31.0)
 
 ### Added
 
@@ -33,7 +83,7 @@ So if you think that lego is worth it, please consider [donating](https://donate
 ## v4.30.1
 
 - Release date: 2025-12-16
-- Tag: [v4.30.1](https://github.com/go-acme/lego/releases/tag/v4.30.1)
+- Tag: [v4.30.1](https://github.com/digicert/lego/releases/tag/v4.30.1)
 
 Due to an error related to `aliyun/credentials-go`, some artifacts of the v4.30.0 release have not been published.
 
@@ -42,7 +92,7 @@ This release contains the same things as v4.30.0.
 ## v4.30.0
 
 - Release date: 2025-12-16
-- Tag: [v4.30.0](https://github.com/go-acme/lego/releases/tag/v4.30.0)
+- Tag: [v4.30.0](https://github.com/digicert/lego/releases/tag/v4.30.0)
 
 ### Added
 
@@ -64,7 +114,7 @@ This release contains the same things as v4.30.0.
 ## v4.29.0
 
 - Release date: 2025-11-29
-- Tag: [v4.29.0](https://github.com/go-acme/lego/releases/tag/v4.29.0)
+- Tag: [v4.29.0](https://github.com/digicert/lego/releases/tag/v4.29.0)
 
 ### Added
  
@@ -88,7 +138,7 @@ This release contains the same things as v4.30.0.
 ## v4.28.1
 
 - Release date: 2025-11-06
-- Tag: [v4.28.1](https://github.com/go-acme/lego/releases/tag/v4.28.1)
+- Tag: [v4.28.1](https://github.com/digicert/lego/releases/tag/v4.28.1)
 
 ### Fixed
 
@@ -97,7 +147,7 @@ This release contains the same things as v4.30.0.
 ## v4.28.0
 
 - Release date: 2025-10-31
-- Tag: [v4.28.0](https://github.com/go-acme/lego/releases/tag/v4.28.0)
+- Tag: [v4.28.0](https://github.com/digicert/lego/releases/tag/v4.28.0)
 
 ### Added
 
@@ -118,7 +168,7 @@ This release contains the same things as v4.30.0.
 ## v4.27.0
 
 - Release date: 2025-10-17
-- Tag: [v4.27.0](https://github.com/go-acme/lego/releases/tag/v4.27.0)
+- Tag: [v4.27.0](https://github.com/digicert/lego/releases/tag/v4.27.0)
 
 ### Added
 
@@ -139,7 +189,7 @@ This release contains the same things as v4.30.0.
 ## v4.26.0
 
 - Release date: 2025-09-13
-- Tag: [v4.26.0](https://github.com/go-acme/lego/releases/tag/v4.26.0)
+- Tag: [v4.26.0](https://github.com/digicert/lego/releases/tag/v4.26.0)
 
 ### Added
 
@@ -162,7 +212,7 @@ This release contains the same things as v4.30.0.
 ## v4.25.2
 
 - Release date: 2025-08-06
-- Tag: [v4.25.2](https://github.com/go-acme/lego/releases/tag/v4.25.2)
+- Tag: [v4.25.2](https://github.com/digicert/lego/releases/tag/v4.25.2)
 
 ### Changed
 
@@ -176,7 +226,7 @@ This release contains the same things as v4.30.0.
 ## v4.25.1
 
 - Release date: 2025-07-21
-- Tag: [v4.25.1](https://github.com/go-acme/lego/releases/tag/v4.25.1)
+- Tag: [v4.25.1](https://github.com/digicert/lego/releases/tag/v4.25.1)
 
 ### Fixed
 
@@ -185,7 +235,7 @@ This release contains the same things as v4.30.0.
 ## v4.25.0
 
 - Release date: 2025-07-21
-- Tag: [v4.25.0](https://github.com/go-acme/lego/releases/tag/v4.25.0)
+- Tag: [v4.25.0](https://github.com/digicert/lego/releases/tag/v4.25.0)
 
 The binary size of this release is about ~50% smaller compared to previous releases.
 
@@ -209,7 +259,7 @@ This will also reduce the module cache usage by 320 MB (this will only affect us
 ## v4.24.0
 
 - Release date: 2025-07-07
-- Tag: [v4.24.0](https://github.com/go-acme/lego/releases/tag/v4.24.0)
+- Tag: [v4.24.0](https://github.com/digicert/lego/releases/tag/v4.24.0)
 
 ### Added
 
@@ -235,7 +285,7 @@ This will also reduce the module cache usage by 320 MB (this will only affect us
 ## v4.23.1
 
 - Release date: 2025-04-16
-- Tag: [v4.23.1](https://github.com/go-acme/lego/releases/tag/v4.23.1)
+- Tag: [v4.23.1](https://github.com/digicert/lego/releases/tag/v4.23.1)
 
 Due to an error related to Snapcraft, some artifacts of the v4.23.0 release have not been published.
 
@@ -244,7 +294,7 @@ This release contains the same things as v4.23.0.
 ## v4.23.0
 
 - Release date: 2025-04-16
-- Tag: [v4.23.0](https://github.com/go-acme/lego/releases/tag/v4.23.0)
+- Tag: [v4.23.0](https://github.com/digicert/lego/releases/tag/v4.23.0)
 
 ### Added
 
@@ -278,7 +328,7 @@ This release contains the same things as v4.23.0.
 ## v4.22.2
 
 - Release date: 2025-02-17
-- Tag: [v4.22.2](https://github.com/go-acme/lego/releases/tag/v4.22.2)
+- Tag: [v4.22.2](https://github.com/digicert/lego/releases/tag/v4.22.2)
 
 ### Fixed
 
@@ -287,7 +337,7 @@ This release contains the same things as v4.23.0.
 ## v4.22.1
 
 - Release date: 2025-02-17
-- Tag: [v4.22.1](https://github.com/go-acme/lego/releases/tag/v4.22.1)
+- Tag: [v4.22.1](https://github.com/digicert/lego/releases/tag/v4.22.1)
 
 ### Fixed
 
@@ -298,7 +348,7 @@ This release contains the same things as v4.23.0.
 ## v4.22.0
 
 - Release date: 2025-02-17
-- Tag: [v4.22.0](https://github.com/go-acme/lego/releases/tag/v4.22.0)
+- Tag: [v4.22.0](https://github.com/digicert/lego/releases/tag/v4.22.0)
 
 ### Added
 
@@ -329,7 +379,7 @@ This release contains the same things as v4.23.0.
 ## v4.21.0
 
 - Release date: 2024-12-20
-- Tag: [v4.21.0](https://github.com/go-acme/lego/releases/tag/v4.21.0)
+- Tag: [v4.21.0](https://github.com/digicert/lego/releases/tag/v4.21.0)
 
 ### Added
 
@@ -353,14 +403,14 @@ This release contains the same things as v4.23.0.
 ## v4.20.4
 
 - Release date: 2024-11-21
-- Tag: [v4.20.4](https://github.com/go-acme/lego/releases/tag/v4.20.4)
+- Tag: [v4.20.4](https://github.com/digicert/lego/releases/tag/v4.20.4)
 
 Publish the Snap to the Snapcraft stable channel.
 
 ## v4.20.3
 
 - Release date: 2024-11-21
-- Tag: [v4.20.3](https://github.com/go-acme/lego/releases/tag/v4.20.3)
+- Tag: [v4.20.3](https://github.com/digicert/lego/releases/tag/v4.20.3)
 
 ### Fixed
 
@@ -371,7 +421,7 @@ Publish the Snap to the Snapcraft stable channel.
 ## v4.20.2
 
 - Release date: 2024-11-11
-- Tag: [v4.20.2](https://github.com/go-acme/lego/releases/tag/v4.20.2)
+- Tag: [v4.20.2](https://github.com/digicert/lego/releases/tag/v4.20.2)
 
 ### Added
 
@@ -414,7 +464,7 @@ Cancelled due to CI failure.
 ## v4.19.2
 
 - Release date: 2024-10-06
-- Tag: [v4.19.2](https://github.com/go-acme/lego/releases/tag/v4.19.2)
+- Tag: [v4.19.2](https://github.com/digicert/lego/releases/tag/v4.19.2)
 
 ### Fixed
 
@@ -423,7 +473,7 @@ Cancelled due to CI failure.
 ## v4.19.1
 
 - Release date: 2024-10-06
-- Tag: [v4.19.1](https://github.com/go-acme/lego/releases/tag/v4.19.1)
+- Tag: [v4.19.1](https://github.com/digicert/lego/releases/tag/v4.19.1)
 
 ### Fixed
 
@@ -433,7 +483,7 @@ Cancelled due to CI failure.
 ## v4.19.0
 
 - Release date: 2024-10-03
-- Tag: [v4.19.0](https://github.com/go-acme/lego/releases/tag/v4.19.0)
+- Tag: [v4.19.0](https://github.com/digicert/lego/releases/tag/v4.19.0)
 
 ### Added
 
@@ -458,7 +508,7 @@ Cancelled due to CI failure.
 ## v4.18.0
 
 - Release date: 2024-08-30
-- Tag: [v4.18.0](https://github.com/go-acme/lego/releases/tag/v4.18.0)
+- Tag: [v4.18.0](https://github.com/digicert/lego/releases/tag/v4.18.0)
 
 ### Added
 
@@ -483,7 +533,7 @@ Cancelled due to CI failure.
 ## v4.17.4
 
 - Release date: 2024-06-12
-- Tag: [v4.17.4](https://github.com/go-acme/lego/releases/tag/v4.17.4)
+- Tag: [v4.17.4](https://github.com/digicert/lego/releases/tag/v4.17.4)
 
 ### Fixed
 
@@ -492,7 +542,7 @@ Cancelled due to CI failure.
 ## v4.17.3
 
 - Release date: 2024-05-28
-- Tag: [v4.17.3](https://github.com/go-acme/lego/releases/tag/v4.17.3)
+- Tag: [v4.17.3](https://github.com/digicert/lego/releases/tag/v4.17.3)
 
 ### Added
 
@@ -548,7 +598,7 @@ Canceled due to a release failure related to Snapcraft.
 ## v4.16.1
 
 - Release date: 2024-03-10
-- Tag: [v4.16.1](https://github.com/go-acme/lego/releases/tag/v4.16.1)
+- Tag: [v4.16.1](https://github.com/digicert/lego/releases/tag/v4.16.1)
 
 ### Fixed
 
@@ -557,7 +607,7 @@ Canceled due to a release failure related to Snapcraft.
 ## v4.16.0
 
 - Release date: 2024-03-09
-- Tag: [v4.16.0](https://github.com/go-acme/lego/releases/tag/v4.16.0)
+- Tag: [v4.16.0](https://github.com/digicert/lego/releases/tag/v4.16.0)
 
 ### Added
 
@@ -581,7 +631,7 @@ Canceled due to a release failure related to Snapcraft.
 ## v4.15.0
 
 - Release date: 2024-01-28
-- Tag: [v4.15.0](https://github.com/go-acme/lego/releases/tag/v4.15.0)
+- Tag: [v4.15.0](https://github.com/digicert/lego/releases/tag/v4.15.0)
 
 ### Added
 
@@ -622,7 +672,7 @@ Canceled due to a release failure related to Snapcraft.
 ## v4.14.1
 
 - Release date: 2023-09-20
-- Tag: [v4.14.1](https://github.com/go-acme/lego/releases/tag/v4.14.1)
+- Tag: [v4.14.1](https://github.com/digicert/lego/releases/tag/v4.14.1)
 
 ### Fixed
 
@@ -639,7 +689,7 @@ Cancelled due to CI failure.
 ## v4.14.0
 
 - Release date: 2023-08-20
-- Tag: [v4.14.0](https://github.com/go-acme/lego/releases/tag/v4.14.0)
+- Tag: [v4.14.0](https://github.com/digicert/lego/releases/tag/v4.14.0)
 
 ### Added
 
@@ -661,7 +711,7 @@ Cancelled due to CI failure.
 ## v4.13.3
 
 - Release date: 2023-07-25
-- Tag: [v4.13.3](https://github.com/go-acme/lego/releases/tag/v4.13.3)
+- Tag: [v4.13.3](https://github.com/digicert/lego/releases/tag/v4.13.3)
 
 ### Fixed
 
@@ -671,7 +721,7 @@ Cancelled due to CI failure.
 ## v4.13.2
 
 - Release date: 2023-07-21
-- Tag: [v4.13.2](https://github.com/go-acme/lego/releases/tag/v4.13.2)
+- Tag: [v4.13.2](https://github.com/digicert/lego/releases/tag/v4.13.2)
 
 ### Fixed
 
@@ -680,7 +730,7 @@ Cancelled due to CI failure.
 ## v4.13.1
 
 - Release date: 2023-07-20
-- Tag: [v4.13.1](https://github.com/go-acme/lego/releases/tag/v4.13.1)
+- Tag: [v4.13.1](https://github.com/digicert/lego/releases/tag/v4.13.1)
 
 ### Added
 
@@ -710,7 +760,7 @@ Cancelled due to a CI issue (no space left on device).
 ## v4.12.2
 
 - Release date: 2023-06-19
-- Tag: [v4.12.2](https://github.com/go-acme/lego/releases/tag/v4.12.2)
+- Tag: [v4.12.2](https://github.com/digicert/lego/releases/tag/v4.12.2)
 
 ### Fixed
 
@@ -720,7 +770,7 @@ Cancelled due to a CI issue (no space left on device).
 ## v4.12.1
 
 - Release date: 2023-06-06
-- Tag: [v4.12.1](https://github.com/go-acme/lego/releases/tag/v4.12.1)
+- Tag: [v4.12.1](https://github.com/digicert/lego/releases/tag/v4.12.1)
 
 ### Fixed
 
@@ -729,7 +779,7 @@ Cancelled due to a CI issue (no space left on device).
 ## v4.12.0
 
 - Release date: 2023-05-28
-- Tag: [v4.12.0](https://github.com/go-acme/lego/releases/tag/v4.12.0)
+- Tag: [v4.12.0](https://github.com/digicert/lego/releases/tag/v4.12.0)
 
 ### Added
 
@@ -750,7 +800,7 @@ Cancelled due to a CI issue (no space left on device).
 ## v4.11.0
 
 - Release date: 2023-05-02
-- Tag: [v4.11.0](https://github.com/go-acme/lego/releases/tag/v4.11.0)
+- Tag: [v4.11.0](https://github.com/digicert/lego/releases/tag/v4.11.0)
 
 ### Added
 
@@ -775,14 +825,14 @@ Cancelled due to a CI issue (no space left on device).
 ## v4.10.2
 
 - Release date: 2023-02-26
-- Tag: [v4.10.2](https://github.com/go-acme/lego/releases/tag/v4.10.2)
+- Tag: [v4.10.2](https://github.com/digicert/lego/releases/tag/v4.10.2)
 
 Fix Docker image builds.
 
 ## v4.10.1
 
 - Release date: 2023-02-25
-- Tag: [v4.10.1](https://github.com/go-acme/lego/releases/tag/v4.10.1)
+- Tag: [v4.10.1](https://github.com/digicert/lego/releases/tag/v4.10.1)
 
 ### Fixed
 
@@ -792,7 +842,7 @@ Fix Docker image builds.
 ## v4.10.0
 
 - Release date: 2023-02-10
-- Tag: [v4.10.0](https://github.com/go-acme/lego/releases/tag/v4.10.0)
+- Tag: [v4.10.0](https://github.com/digicert/lego/releases/tag/v4.10.0)
 
 ### Added
 
@@ -821,7 +871,7 @@ Fix Docker image builds.
 ## v4.9.1
 
 - Release date: 2022-11-25
-- Tag: [v4.9.1](https://github.com/go-acme/lego/releases/tag/v4.9.1)
+- Tag: [v4.9.1](https://github.com/digicert/lego/releases/tag/v4.9.1)
 
 ### Changed
 
@@ -839,7 +889,7 @@ Fix Docker image builds.
 ## v4.9.0
 
 - Release date: 2022-10-03
-- Tag: [v4.9.0](https://github.com/go-acme/lego/releases/tag/v4.9.0)
+- Tag: [v4.9.0](https://github.com/digicert/lego/releases/tag/v4.9.0)
 
 ### Added
 
@@ -872,7 +922,7 @@ Fix Docker image builds.
 ## v4.8.0
 
 - Release date: 2022-06-30
-- Tag: [v4.8.0](https://github.com/go-acme/lego/releases/tag/v4.8.0)
+- Tag: [v4.8.0](https://github.com/digicert/lego/releases/tag/v4.8.0)
 
 ### Added
 
@@ -891,7 +941,7 @@ Fix Docker image builds.
 ## v4.7.0
 
 - Release date: 2022-05-27
-- Tag: [v4.7.0](https://github.com/go-acme/lego/releases/tag/v4.7.0)
+- Tag: [v4.7.0](https://github.com/digicert/lego/releases/tag/v4.7.0)
 
 ### Added
 
@@ -916,7 +966,7 @@ Fix Docker image builds.
 ## v4.6.0
 
 - Release date: 2022-01-18
-- Tag: [v4.6.0](https://github.com/go-acme/lego/releases/tag/v4.6.0)
+- Tag: [v4.6.0](https://github.com/digicert/lego/releases/tag/v4.6.0)
 
 ### Added
 
@@ -941,7 +991,7 @@ Fix Docker image builds.
 ## v4.5.3
 
 - Release date: 2021-09-06
-- Tag: [v4.5.3](https://github.com/go-acme/lego/releases/tag/v4.5.3)
+- Tag: [v4.5.3](https://github.com/digicert/lego/releases/tag/v4.5.3)
 
 ### Fixed
 
@@ -950,7 +1000,7 @@ Fix Docker image builds.
 ## v4.5.2
 
 - Release date: 2021-09-01
-- Tag: [v4.5.2](https://github.com/go-acme/lego/releases/tag/v4.5.2)
+- Tag: [v4.5.2](https://github.com/digicert/lego/releases/tag/v4.5.2)
 
 ### Added
 
@@ -995,7 +1045,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.4.0
 
 - Release date: 2021-06-08
-- Tag: [v4.4.0](https://github.com/go-acme/lego/releases/tag/v4.4.0)
+- Tag: [v4.4.0](https://github.com/digicert/lego/releases/tag/v4.4.0)
 
 ### Added
 
@@ -1026,7 +1076,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.3.1
 
 - Release date: 2021-03-12
-- Tag: [v4.3.1](https://github.com/go-acme/lego/releases/tag/v4.3.1)
+- Tag: [v4.3.1](https://github.com/digicert/lego/releases/tag/v4.3.1)
 
 ### Fixed
 
@@ -1035,7 +1085,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.3.0
 
 - Release date: 2021-03-10
-- Tag: [v4.3.0](https://github.com/go-acme/lego/releases/tag/v4.3.0)
+- Tag: [v4.3.0](https://github.com/digicert/lego/releases/tag/v4.3.0)
 
 ### Added
 
@@ -1062,7 +1112,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.2.0
 
 - Release date: 2021-01-24
-- Tag: [v4.2.0](https://github.com/go-acme/lego/releases/tag/v4.2.0)
+- Tag: [v4.2.0](https://github.com/digicert/lego/releases/tag/v4.2.0)
 
 ### Added
 
@@ -1085,7 +1135,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.1.3
 
 - Release date: 2020-11-25
-- Tag: [v4.1.3](https://github.com/go-acme/lego/releases/tag/v4.1.3)
+- Tag: [v4.1.3](https://github.com/digicert/lego/releases/tag/v4.1.3)
 
 ### Fixed
 
@@ -1094,7 +1144,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.1.2
 
 - Release date: 2020-11-21
-- Tag: [v4.1.2](https://github.com/go-acme/lego/releases/tag/v4.1.2)
+- Tag: [v4.1.2](https://github.com/digicert/lego/releases/tag/v4.1.2)
 
 ### Fixed
 
@@ -1103,7 +1153,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.1.1
 
 - Release date: 2020-11-19
-- Tag: [v4.1.1](https://github.com/go-acme/lego/releases/tag/v4.1.1)
+- Tag: [v4.1.1](https://github.com/digicert/lego/releases/tag/v4.1.1)
 
 ### Fixed
 
@@ -1113,7 +1163,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.1.0
 
 - Release date: 2020-11-06
-- Tag: [v4.1.0](https://github.com/go-acme/lego/releases/tag/v4.1.0)
+- Tag: [v4.1.0](https://github.com/digicert/lego/releases/tag/v4.1.0)
 
 ### Added
 
@@ -1134,7 +1184,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.0.1
 
 - Release date: 2020-09-03
-- Tag: [v4.0.1](https://github.com/go-acme/lego/releases/tag/v4.0.1)
+- Tag: [v4.0.1](https://github.com/digicert/lego/releases/tag/v4.0.1)
 
 ### Fixed
 
@@ -1143,7 +1193,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v4.0.0
 
 - Release date: 2020-09-02
-- Tag: [v4.0.0](https://github.com/go-acme/lego/releases/tag/v4.0.0)
+- Tag: [v4.0.0](https://github.com/digicert/lego/releases/tag/v4.0.0)
 
 ### Added
 
@@ -1163,7 +1213,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.9.0
 
 - Release date: 2020-09-01
-- Tag: [v3.9.0](https://github.com/go-acme/lego/releases/tag/v3.9.0)
+- Tag: [v3.9.0](https://github.com/digicert/lego/releases/tag/v3.9.0)
 
 ### Added
 
@@ -1183,7 +1233,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.8.0
 
 - Release date: 2020-07-02
-- Tag: [v3.8.0](https://github.com/go-acme/lego/releases/tag/v3.8.0)
+- Tag: [v3.8.0](https://github.com/digicert/lego/releases/tag/v3.8.0)
 
 ### Added
 
@@ -1210,7 +1260,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.7.0
 
 - Release date: 2020-05-11
-- Tag: [v3.7.0](https://github.com/go-acme/lego/releases/tag/v3.7.0)
+- Tag: [v3.7.0](https://github.com/digicert/lego/releases/tag/v3.7.0)
 
 ### Added
 
@@ -1236,7 +1286,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.6.0
 
 - Release date: 2020-04-24
-- Tag: [v3.6.0](https://github.com/go-acme/lego/releases/tag/v3.6.0)
+- Tag: [v3.6.0](https://github.com/digicert/lego/releases/tag/v3.6.0)
 
 ### Added
 
@@ -1263,7 +1313,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.5.0
 
 - Release date: 2020-03-15
-- Tag: [v3.5.0](https://github.com/go-acme/lego/releases/tag/v3.5.0)
+- Tag: [v3.5.0](https://github.com/digicert/lego/releases/tag/v3.5.0)
 
 ### Added
 
@@ -1289,7 +1339,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.4.0
 
 - Release date: 2020-02-25
-- Tag: [v3.4.0](https://github.com/go-acme/lego/releases/tag/v3.4.0)
+- Tag: [v3.4.0](https://github.com/digicert/lego/releases/tag/v3.4.0)
 
 ### Added
 
@@ -1317,7 +1367,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.3.0
 
 - Release date: 2020-01-08
-- Tag: [v3.3.0](https://github.com/go-acme/lego/releases/tag/v3.3.0)
+- Tag: [v3.3.0](https://github.com/digicert/lego/releases/tag/v3.3.0)
 
 ### Added
 
@@ -1336,7 +1386,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.2.0
 
 - Release date: 2019-11-10
-- Tag: [v3.2.0](https://github.com/go-acme/lego/releases/tag/v3.2.0)
+- Tag: [v3.2.0](https://github.com/digicert/lego/releases/tag/v3.2.0)
 
 ### Added
 
@@ -1355,7 +1405,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.1.0
 
 - Release date: 2019-10-07
-- Tag: [v3.1.0](https://github.com/go-acme/lego/releases/tag/v3.1.0)
+- Tag: [v3.1.0](https://github.com/digicert/lego/releases/tag/v3.1.0)
 
 ### Added
 
@@ -1376,7 +1426,7 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.0.2
 
 - Release date: 2019-08-15
-- Tag: [v3.0.2](https://github.com/go-acme/lego/releases/tag/v3.0.2)
+- Tag: [v3.0.2](https://github.com/digicert/lego/releases/tag/v3.0.2)
 
 ### Fixed
 
@@ -1385,24 +1435,24 @@ Cancelled due to a CI issue, replaced by v4.5.2.
 ## v3.0.1
 
 - Release date: 2019-08-14
-- Tag: [v3.0.1](https://github.com/go-acme/lego/releases/tag/v3.0.1)
+- Tag: [v3.0.1](https://github.com/digicert/lego/releases/tag/v3.0.1)
 
 There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 
 ## v3.0.0
 
 - Release date: 2019-08-05
-- Tag: [v3.0.0](https://github.com/go-acme/lego/releases/tag/v3.0.0)
+- Tag: [v3.0.0](https://github.com/digicert/lego/releases/tag/v3.0.0)
 
 ### Changed
 
-- migrate to go module (new import github.com/go-acme/lego/v3/)
+- migrate to go module (new import github.com/digicert/lego/v3/)
 - update DNS clients
 
 ## v2.7.2
 
 - Release date: 2019-07-30
-- Tag: [v2.7.2](https://github.com/go-acme/lego/releases/tag/v2.7.2)
+- Tag: [v2.7.2](https://github.com/digicert/lego/releases/tag/v2.7.2)
 
 ### Fixed
 
@@ -1411,7 +1461,7 @@ There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 ## v2.7.1
 
 - Release date: 2019-07-22
-- Tag: [v2.7.1](https://github.com/go-acme/lego/releases/tag/v2.7.1)
+- Tag: [v2.7.1](https://github.com/digicert/lego/releases/tag/v2.7.1)
 
 ### Fixed
 
@@ -1420,7 +1470,7 @@ There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 ## v2.7.0
 
 - Release date: 2019-07-17
-- Tag: [v2.7.0](https://github.com/go-acme/lego/releases/tag/v2.7.0)
+- Tag: [v2.7.0](https://github.com/digicert/lego/releases/tag/v2.7.0)
 
 ### Added
 
@@ -1440,7 +1490,7 @@ There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 ## v2.6.0
 
 - Release date: 2019-05-27
-- Tag: [v2.6.0](https://github.com/go-acme/lego/releases/tag/v2.6.0)
+- Tag: [v2.6.0](https://github.com/digicert/lego/releases/tag/v2.6.0)
 
 ### Added
 
@@ -1465,7 +1515,7 @@ There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 ## v2.5.0
 
 - Release date: 2019-04-17
-- Tag: [v2.5.0](https://github.com/go-acme/lego/releases/tag/v2.5.0)
+- Tag: [v2.5.0](https://github.com/digicert/lego/releases/tag/v2.5.0)
 
 ### Added
 
@@ -1487,9 +1537,9 @@ There was a problem when creating the tag v3.0.1, this tag has been invalidated.
 ## v2.4.0
 
 - Release date: 2019-03-25
-- Tag: [v2.4.0](https://github.com/go-acme/lego/releases/tag/v2.4.0)
+- Tag: [v2.4.0](https://github.com/digicert/lego/releases/tag/v2.4.0)
 
-Migrate from xenolf/lego to go-acme/lego.
+Migrate from xenolf/lego to digicert/lego.
 
 ### Added
 
@@ -1505,7 +1555,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v2.3.0
 
 - Release date: 2019-03-11
-- Tag: [v2.3.0](https://github.com/go-acme/lego/releases/tag/v2.3.0)
+- Tag: [v2.3.0](https://github.com/digicert/lego/releases/tag/v2.3.0)
 
 ### Added
 
@@ -1532,7 +1582,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v2.2.0
 
 - Release date: 2019-02-08
-- Tag: [v2.2.0](https://github.com/go-acme/lego/releases/tag/v2.2.0)
+- Tag: [v2.2.0](https://github.com/digicert/lego/releases/tag/v2.2.0)
 
 ### Added
 
@@ -1555,7 +1605,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v2.1.0
 
 - Release date: 2019-01-24
-- Tag: [v2.1.0](https://github.com/go-acme/lego/releases/tag/v2.1.0)
+- Tag: [v2.1.0](https://github.com/digicert/lego/releases/tag/v2.1.0)
 
 ### Added
 
@@ -1575,7 +1625,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v2.0.0
 
 - Release date: 2019-01-09
-- Tag: [v2.0.0](https://github.com/go-acme/lego/releases/tag/v2.0.0)
+- Tag: [v2.0.0](https://github.com/digicert/lego/releases/tag/v2.0.0)
 
 ### Added
 
@@ -1630,7 +1680,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v1.2.0
 
 - Release date: 2018-11-04
-- Tag: [v1.2.0](https://github.com/go-acme/lego/releases/tag/v1.2.0)
+- Tag: [v1.2.0](https://github.com/digicert/lego/releases/tag/v1.2.0)
 
 ### Added
 
@@ -1654,7 +1704,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v1.1.0
 
 - Release date: 2018-10-16
-- Tag: [v1.1.0](https://github.com/go-acme/lego/releases/tag/v1.1.0)
+- Tag: [v1.1.0](https://github.com/digicert/lego/releases/tag/v1.1.0)
 
 ### Added
 
@@ -1693,7 +1743,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v1.0.0
 
 - Release date: 2018-05-30
-- Tag: [v1.0.0](https://github.com/go-acme/lego/releases/tag/v1.0.0)
+- Tag: [v1.0.0](https://github.com/digicert/lego/releases/tag/v1.0.0)
 
 ### Changed
 
@@ -1705,7 +1755,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## v0.5.0
 
 - Release date: 2018-05-29
-- Tag: [v0.5.0](https://github.com/go-acme/lego/releases/tag/v0.5.0)
+- Tag: [v0.5.0](https://github.com/digicert/lego/releases/tag/v0.5.0)
 
 ### Added
 
@@ -1742,7 +1792,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.4.1
 
 - Release date: 2017-09-26
-- Tag: [0.4.1](https://github.com/go-acme/lego/releases/tag/0.4.1)
+- Tag: [0.4.1](https://github.com/digicert/lego/releases/tag/0.4.1)
 
 ### Added
 
@@ -1758,7 +1808,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.4.0
 
 - Release date: 2017-07-13
-- Tag: [0.4.0](https://github.com/go-acme/lego/releases/tag/0.4.0)
+- Tag: [0.4.0](https://github.com/digicert/lego/releases/tag/0.4.0)
 
 ### Added
 
@@ -1814,7 +1864,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.3.1
 
 - Release date: 2016-04-19
-- Tag: [0.3.1](https://github.com/go-acme/lego/releases/tag/0.3.1)
+- Tag: [0.3.1](https://github.com/digicert/lego/releases/tag/0.3.1)
 
 ### Added
 
@@ -1829,7 +1879,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.3.0
 
 - Release date: 2016-03-19
-- Tag: [0.3.0](https://github.com/go-acme/lego/releases/tag/0.3.0)
+- Tag: [0.3.0](https://github.com/digicert/lego/releases/tag/0.3.0)
 
 ### Added
 
@@ -1867,7 +1917,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.2.0
 
 - Release date: 2016-01-09
-- Tag: [0.2.0](https://github.com/go-acme/lego/releases/tag/0.2.0)
+- Tag: [0.2.0](https://github.com/digicert/lego/releases/tag/0.2.0)
 
 ### Added
 
@@ -1900,7 +1950,7 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.1.1
 
 - Release date: 2015-12-18
-- Tag: [0.1.1](https://github.com/go-acme/lego/releases/tag/0.1.1)
+- Tag: [0.1.1](https://github.com/digicert/lego/releases/tag/0.1.1)
 
 ### Added
 
@@ -1923,6 +1973,6 @@ Migrate from xenolf/lego to go-acme/lego.
 ## 0.1.0
 
 - Release date: 2015-12-03
-- Tag: [0.1.0](https://github.com/go-acme/lego/releases/tag/0.1.0)
+- Tag: [0.1.0](https://github.com/digicert/lego/releases/tag/0.1.0)
 
 Initial release
