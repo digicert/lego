@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/ptr"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
 	teo "github.com/go-acme/tencentedgdeone/v20220901"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
@@ -33,6 +33,8 @@ const (
 	EnvPollingInterval    = envNamespace + "POLLING_INTERVAL"
 	EnvHTTPTimeout        = envNamespace + "HTTP_TIMEOUT"
 )
+
+var _ challenge.ProviderTimeout = (*DNSProvider)(nil)
 
 // Config is used to configure the creation of the DNSProvider.
 type Config struct {
@@ -126,10 +128,8 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 }
 
 // Present creates a TXT record using the specified parameters.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
-
-	ctx := context.Background()
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zoneID, err := d.getHostedZoneID(ctx, info.EffectiveFQDN)
 	if err != nil {
@@ -142,11 +142,11 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	request := teo.NewCreateDnsRecordRequest()
-	request.Name = ptr.Pointer(punnyCoded)
+	request.Name = new(punnyCoded)
 	request.ZoneId = zoneID
-	request.Type = ptr.Pointer("TXT")
-	request.Content = ptr.Pointer(info.Value)
-	request.TTL = ptr.Pointer(int64(d.config.TTL))
+	request.Type = new("TXT")
+	request.Content = new(info.Value)
+	request.TTL = new(int64(d.config.TTL))
 
 	nr, err := teo.CreateDnsRecordWithContext(ctx, d.client, request)
 	if err != nil {
@@ -161,10 +161,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
-
-	ctx := context.Background()
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zoneID, err := d.getHostedZoneID(ctx, info.EffectiveFQDN)
 	if err != nil {

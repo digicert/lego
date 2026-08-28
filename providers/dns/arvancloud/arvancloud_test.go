@@ -1,9 +1,13 @@
 package arvancloud
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -109,7 +113,7 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 
@@ -123,6 +127,54 @@ func TestLiveCleanUp(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.CleanUp(envTest.GetDomain(), "", "123d==")
+	err = provider.CleanUp(t.Context(), envTest.GetDomain(), "", "123d==")
+	require.NoError(t, err)
+}
+
+func mockBuilder() *servermock.Builder[*DNSProvider] {
+	return servermock.NewBuilder(
+		func(server *httptest.Server) (*DNSProvider, error) {
+			config := NewDefaultConfig()
+			config.APIKey = "secret"
+			config.HTTPClient = server.Client()
+
+			p, err := NewDNSProviderConfig(config)
+			if err != nil {
+				return nil, err
+			}
+
+			p.client.BaseURL, _ = url.Parse(server.URL)
+
+			return p, nil
+		},
+		servermock.CheckHeader().
+			WithJSONHeaders().
+			WithAuthorization("secret"),
+	)
+}
+
+func TestDNSProvider_Present(t *testing.T) {
+	provider := mockBuilder().
+		Route("POST /cdn/4.0/domains/example.com/dns-records",
+			servermock.ResponseFromInternal("create_txt_record.json").
+				WithStatusCode(http.StatusCreated),
+			servermock.CheckRequestJSONBodyFromInternal("create_record-request.json"),
+		).
+		Build(t)
+
+	err := provider.Present(t.Context(), "example.com", "abc", "123d==")
+	require.NoError(t, err)
+}
+
+func TestDNSProvider_CleanUp(t *testing.T) {
+	provider := mockBuilder().
+		Route("DELETE /cdn/4.0/domains/example.com/dns-records/fe93c082-70d9-4d53-a121-66928adc40c8",
+			servermock.Noop(),
+		).
+		Build(t)
+
+	provider.recordIDs["abc"] = "fe93c082-70d9-4d53-a121-66928adc40c8"
+
+	err := provider.CleanUp(t.Context(), "example.com", "abc", "123d==")
 	require.NoError(t, err)
 }

@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
-	"github.com/digicert/lego/v4/providers/dns/mijnhost/internal"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v5/providers/dns/mijnhost/internal"
 )
 
 // Environment variables names.
@@ -112,10 +112,8 @@ func (d *DNSProvider) Sequential() time.Duration {
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	ctx := context.Background()
-
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	domains, err := d.client.ListDomains(ctx)
 	if err != nil {
@@ -125,11 +123,6 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	dom, err := findDomain(domains, domain)
 	if err != nil {
 		return fmt.Errorf("mijnhost: find domain: %w", err)
-	}
-
-	records, err := d.client.GetRecords(ctx, dom.Domain)
-	if err != nil {
-		return fmt.Errorf("mijnhost: get records: %w", err)
 	}
 
 	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, dom.Domain)
@@ -144,27 +137,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		TTL:   d.config.TTL,
 	}
 
-	// mijn.host doesn't support multiple values for a domain,
-	// so we removed existing record for the subdomain.
-	cleanedRecords := filterRecords(records, func(record internal.Record) bool {
-		return record.Type == txtType && (record.Name == subDomain || record.Name == dns01.UnFqdn(info.EffectiveFQDN))
-	})
-
-	cleanedRecords = append(cleanedRecords, record)
-
-	err = d.client.UpdateRecords(ctx, dom.Domain, cleanedRecords)
+	err = d.client.UpdateRecord(ctx, dom.Domain, record)
 	if err != nil {
-		return fmt.Errorf("mijnhost: update records: %w", err)
+		return fmt.Errorf("mijnhost: update record: %w", err)
 	}
 
 	return nil
 }
 
 // CleanUp removes the TXT record.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	ctx := context.Background()
-
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	domains, err := d.client.ListDomains(ctx)
 	if err != nil {
@@ -176,18 +159,20 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("mijnhost: find domain: %w", err)
 	}
 
-	records, err := d.client.GetRecords(ctx, dom.Domain)
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, dom.Domain)
 	if err != nil {
-		return fmt.Errorf("mijnhost: get records: %w", err)
+		return fmt.Errorf("mijnhost: %w", err)
 	}
 
-	cleanedRecords := filterRecords(records, func(record internal.Record) bool {
-		return record.Type == txtType && record.Value == info.Value
-	})
+	record := internal.Record{
+		Type:  txtType,
+		Name:  subDomain,
+		Value: info.Value,
+	}
 
-	err = d.client.UpdateRecords(ctx, dom.Domain, cleanedRecords)
+	err = d.client.DeleteRecord(ctx, dom.Domain, record)
 	if err != nil {
-		return fmt.Errorf("mijnhost: update records: %w", err)
+		return fmt.Errorf("mijnhost: delete record: %w", err)
 	}
 
 	return nil
@@ -203,18 +188,4 @@ func findDomain(domains []internal.Domain, fqdn string) (internal.Domain, error)
 	}
 
 	return internal.Domain{}, fmt.Errorf("domain %s not found", fqdn)
-}
-
-func filterRecords(records []internal.Record, fn func(record internal.Record) bool) []internal.Record {
-	var newRecords []internal.Record
-
-	for _, record := range records {
-		if record.Type == "TXT" && fn(record) {
-			continue
-		}
-
-		newRecords = append(newRecords, record)
-	}
-
-	return newRecords
 }

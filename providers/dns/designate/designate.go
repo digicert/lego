@@ -2,17 +2,19 @@
 package designate
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"slices"
 	"sync"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/log"
+	"github.com/digicert/lego/v5/platform/env"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/dns/v2/recordsets"
@@ -53,7 +55,9 @@ type Config struct {
 	PropagationTimeout time.Duration
 	PollingInterval    time.Duration
 	TTL                int
-	opts               gophercloud.AuthOptions
+
+	opts       gophercloud.AuthOptions
+	regionName string
 }
 
 // NewDefaultConfig returns a default configuration for the DNSProvider.
@@ -83,14 +87,24 @@ func NewDNSProvider() (*DNSProvider, error) {
 
 	val, err := env.Get(EnvCloud)
 	if err == nil {
-		opts, erro := clientconfig.AuthOptions(&clientconfig.ClientOpts{
+		clientOpts := &clientconfig.ClientOpts{
 			Cloud: val[EnvCloud],
-		})
+		}
+
+		opts, erro := clientconfig.AuthOptions(clientOpts)
 		if erro != nil {
 			return nil, fmt.Errorf("designate: %w", erro)
 		}
 
 		config.opts = *opts
+
+		// Reference: https://github.com/gophercloud/utils/blob/4ae35253ac13baca854e4ca21a0eab8c1e247c26/openstack/clientconfig/requests.go#L807-L988
+		cloud, erro := clientconfig.GetCloudFromYAML(clientOpts)
+		if erro != nil {
+			return nil, fmt.Errorf("designate: read cloud file: %w", erro)
+		}
+
+		config.regionName = cloud.RegionName
 	} else {
 		opts, err := openstack.AuthOptionsFromEnv()
 		if err != nil {
@@ -114,8 +128,13 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, fmt.Errorf("designate: failed to authenticate: %w", err)
 	}
 
+	regionName := config.regionName
+	if regionName == "" {
+		regionName = os.Getenv("OS_REGION_NAME")
+	}
+
 	dnsClient, err := openstack.NewDNSV2(provider, gophercloud.EndpointOpts{
-		Region: os.Getenv("OS_REGION_NAME"),
+		Region: regionName,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("designate: failed to get DNS provider: %w", err)
@@ -131,10 +150,10 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	zone, err := d.getZoneName(info.EffectiveFQDN)
+	zone, err := d.getZoneName(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("designate: %w", err)
 	}
@@ -155,11 +174,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	if existingRecord != nil {
 		if slices.Contains(existingRecord.Records, info.Value) {
-			log.Printf("designate: the record already exists: %s", info.Value)
+			log.Debug("designate: the record already exists.", slog.String("value", info.Value))
 			return nil
 		}
 
-		return d.updateRecord(existingRecord, info.Value)
+		err = d.updateRecord(existingRecord, info.Value)
+		if err != nil {
+			return fmt.Errorf("designate: %w", err)
+		}
+
+		return nil
 	}
 
 	err = d.createRecord(zoneID, info.EffectiveFQDN, info.Value)
@@ -171,10 +195,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	zone, err := d.getZoneName(info.EffectiveFQDN)
+	zone, err := d.getZoneName(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("designate: %w", err)
 	}
@@ -229,7 +253,7 @@ func (d *DNSProvider) createRecord(zoneID, fqdn, value string) error {
 
 func (d *DNSProvider) updateRecord(record *recordsets.RecordSet, value string) error {
 	if slices.Contains(record.Records, value) {
-		log.Printf("skip: the record already exists: %s", value)
+		log.Debug("designate: the record already exists. Skipping.", slog.String("value", value))
 		return nil
 	}
 
@@ -295,12 +319,12 @@ func (d *DNSProvider) getRecord(zoneID, wanted string) (*recordsets.RecordSet, e
 	return nil, nil
 }
 
-func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
+func (d *DNSProvider) getZoneName(ctx context.Context, fqdn string) (string, error) {
 	if d.config.ZoneName != "" {
 		return d.config.ZoneName, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}

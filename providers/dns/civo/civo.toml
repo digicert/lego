@@ -6,7 +6,7 @@ Since = "v4.9.0"
 
 Example = '''
 CIVO_TOKEN=xxxxxx \
-lego --dns civo -d '*.example.com' -d example.com run
+lego run --dns civo -d '*.example.com' -d example.com
 '''
 
 [Configuration]
@@ -16,6 +16,7 @@ lego --dns civo -d '*.example.com' -d example.com run
     CIVO_POLLING_INTERVAL = "Time between DNS propagation check in seconds (Default: 30)"
     CIVO_PROPAGATION_TIMEOUT = "Maximum waiting time for DNS propagation in seconds (Default: 300)"
     CIVO_TTL = "The TTL of the TXT record used for the DNS challenge in seconds (Default: 600)"
+    CIVO_HTTP_TIMEOUT = "API request timeout in seconds (Default: 30)"
 
 [Links]
     API = "https://www.civo.com/api/dns"

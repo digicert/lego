@@ -1,16 +1,20 @@
 package http01
 
 import (
+	"context"
 	"fmt"
+	"path"
 	"time"
 
-	"github.com/digicert/lego/v4/acme"
-	"github.com/digicert/lego/v4/acme/api"
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/log"
+	"github.com/digicert/lego/v5/acme"
+	"github.com/digicert/lego/v5/acme/api"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/log"
 )
 
-type ValidateFunc func(core *api.Core, domain string, chlng acme.Challenge) error
+const PathPrefix = "/.well-known/acme-challenge/"
+
+type ValidateFunc func(ctx context.Context, core *api.Core, domain string, chlng acme.Challenge) error
 
 type ChallengeOption func(*Challenge) error
 
@@ -24,7 +28,11 @@ func SetDelay(delay time.Duration) ChallengeOption {
 
 // ChallengePath returns the URL path for the `http-01` challenge.
 func ChallengePath(token string) string {
-	return "/.well-known/acme-challenge/" + token
+	if isBase64url(token) {
+		return PathPrefix + token
+	}
+
+	return path.Join(PathPrefix, "invalid")
 }
 
 type Challenge struct {
@@ -44,20 +52,16 @@ func NewChallenge(core *api.Core, validate ValidateFunc, provider challenge.Prov
 	for _, opt := range opts {
 		err := opt(chlg)
 		if err != nil {
-			log.Infof("challenge option error: %v", err)
+			log.Warn("http01: Challenge option skipped.", log.ErrorAttr(err))
 		}
 	}
 
 	return chlg
 }
 
-func (c *Challenge) SetProvider(provider challenge.Provider) {
-	c.provider = provider
-}
-
-func (c *Challenge) Solve(authz acme.Authorization) error {
+func (c *Challenge) Solve(ctx context.Context, authz acme.Authorization) error {
 	domain := challenge.GetTargetedDomain(authz)
-	log.Infof("[%s] acme: Trying to solve HTTP-01", domain)
+	log.Info("http01: Trying to solve HTTP-01.", log.DomainAttr(domain))
 
 	chlng, err := challenge.FindChallenge(challenge.HTTP01, authz)
 	if err != nil {
@@ -70,15 +74,15 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 		return err
 	}
 
-	err = c.provider.Present(authz.Identifier.Value, chlng.Token, keyAuth)
+	err = c.provider.Present(ctx, authz.Identifier.Value, chlng.Token, keyAuth)
 	if err != nil {
-		return fmt.Errorf("[%s] acme: error presenting token: %w", domain, err)
+		return fmt.Errorf("http01: error presenting token (%s): %w", domain, err)
 	}
 
 	defer func() {
-		err := c.provider.CleanUp(authz.Identifier.Value, chlng.Token, keyAuth)
+		err := c.provider.CleanUp(ctx, authz.Identifier.Value, chlng.Token, keyAuth)
 		if err != nil {
-			log.Warnf("[%s] acme: cleaning up failed: %v", domain, err)
+			log.Warn("http01: cleaning up failed.", log.DomainAttr(domain), log.ErrorAttr(err))
 		}
 	}()
 
@@ -88,5 +92,25 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 
 	chlng.KeyAuthorization = keyAuth
 
-	return c.validate(c.core, domain, chlng)
+	return c.validate(ctx, c.core, domain, chlng)
+}
+
+// https://en.wikipedia.org/wiki/Base64#Alphabet
+// ^[A-Za-z0-9_-]+$
+// It MUST NOT contain any characters outside the base64url alphabet
+// and MUST NOT include base64 padding characters ("=")
+// https://www.rfc-editor.org/rfc/rfc8555.html#section-8.3
+func isBase64url(s string) bool {
+	for _, c := range s {
+		isUpper := c >= 'A' && c <= 'Z'
+		isLower := c >= 'a' && c <= 'z'
+		isDigit := c >= '0' && c <= '9'
+		isSpecial := c == '-' || c == '_'
+
+		if !isUpper && !isLower && !isDigit && !isSpecial {
+			return false
+		}
+	}
+
+	return true
 }

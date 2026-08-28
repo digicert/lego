@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ import (
 func mockBuilder() *servermock.Builder[*Client] {
 	return servermock.NewBuilder[*Client](
 		func(server *httptest.Server) (*Client, error) {
-			client, err := NewClient("user", "secret")
+			client, err := NewClient("user", "secret", "")
 			if err != nil {
 				return nil, err
 			}

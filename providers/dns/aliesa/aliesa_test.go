@@ -3,7 +3,7 @@ package aliesa
 import (
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/internal/tester"
 	"github.com/stretchr/testify/require"
 )
 
@@ -146,6 +146,6 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }

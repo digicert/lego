@@ -5,14 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/log"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/desec"
 )
 
@@ -106,28 +106,26 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 // Present creates a TXT record using the specified parameters.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	ctx := context.Background()
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	responsibleDomain, err := d.client.Domains.GetResponsible(ctx, dns01.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
-		return fmt.Errorf("desec: could not find zone for domain %q: %w", domain, err)
+		return fmt.Errorf("desec: get responsible domain: %w", err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, responsibleDomain.Name)
 	if err != nil {
 		return fmt.Errorf("desec: %w", err)
 	}
 
-	domainName := dns01.UnFqdn(authZone)
+	domainName := dns01.UnFqdn(responsibleDomain.Name)
 
 	quotedValue := fmt.Sprintf(`%q`, info.Value)
 
 	rrSet, err := d.client.Records.Get(ctx, domainName, recordName, "TXT")
 	if err != nil {
-		var nf *desec.NotFoundError
-		if !errors.As(err, &nf) {
+		if _, ok := errors.AsType[*desec.NotFoundError](err); !ok {
 			return fmt.Errorf("desec: failed to get records: domainName=%s, recordName=%s: %w", domainName, recordName, err)
 		}
 
@@ -158,21 +156,20 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	ctx := context.Background()
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	responsibleDomain, err := d.client.Domains.GetResponsible(ctx, dns01.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
-		return fmt.Errorf("desec: could not find zone for domain %q: %w", domain, err)
+		return fmt.Errorf("desec: get responsible domain: %w", err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, responsibleDomain.Name)
 	if err != nil {
 		return fmt.Errorf("desec: %w", err)
 	}
 
-	domainName := dns01.UnFqdn(authZone)
+	domainName := dns01.UnFqdn(responsibleDomain.Name)
 
 	rrSet, err := d.client.Records.Get(ctx, domainName, recordName, "TXT")
 	if err != nil {

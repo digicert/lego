@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/digitalocean/internal"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/digitalocean/internal"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 )
 
 // Environment variables names.
@@ -118,17 +118,17 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 // Present creates a TXT record using the specified parameters.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("digitalocean: could not find zone for domain %q: %w", domain, err)
 	}
 
 	record := internal.Record{Type: "TXT", Name: info.EffectiveFQDN, Data: info.Value, TTL: d.config.TTL}
 
-	respData, err := d.client.AddTxtRecord(context.Background(), authZone, record)
+	respData, err := d.client.AddTxtRecord(ctx, authZone, record)
 	if err != nil {
 		return fmt.Errorf("digitalocean: %w", err)
 	}
@@ -141,10 +141,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("digitalocean: could not find zone for domain %q: %w", domain, err)
 	}
@@ -156,7 +156,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	if ok {
 		fmt.Printf("digitalocean: found record ID %d in map for token %s\n", recordID, token)
-		err = d.client.RemoveTxtRecord(context.Background(), authZone, recordID)
+		err = d.client.RemoveTxtRecord(ctx, authZone, recordID)
 		if err != nil {
 			return fmt.Errorf("digitalocean: failed to remove TXT record with ID %d: %w", recordID, err)
 		}
@@ -169,7 +169,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		d.recordIDsMu.Unlock()
 	}
 
-	records, err := d.client.ListRecords(context.Background(), authZone)
+	records, err := d.client.ListRecords(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("digitalocean: failed to list records for zone %s: %w", authZone, err)
 	}
@@ -178,7 +178,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		if record.Type == "TXT" && record.Name == info.EffectiveFQDN {
 			fmt.Printf("digitalocean: found matching TXT record with ID %d for %s\n", record.ID, info.EffectiveFQDN)
 
-			err = d.client.RemoveTxtRecord(context.Background(), authZone, record.ID)
+			err = d.client.RemoveTxtRecord(ctx, authZone, record.ID)
 			if err != nil {
 				return fmt.Errorf("digitalocean: failed to remove TXT record with ID %d: %w", record.ID, err)
 			}

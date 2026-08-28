@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/digicert/lego/v4/certcrypto"
+	"github.com/digicert/lego/v5/certcrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

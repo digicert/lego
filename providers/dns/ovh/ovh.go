@@ -2,17 +2,18 @@
 package ovh
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
-	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/useragent"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 	"github.com/ovh/go-ovh/ovh"
 )
 
@@ -172,10 +173,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ovh: could not find zone for domain %q: %w", domain, err)
 	}
@@ -193,7 +194,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	// Create TXT record
 	var respData Record
 
-	err = d.client.Post(reqURL, reqData, &respData)
+	err = d.client.PostWithContext(ctx, reqURL, reqData, &respData)
 	if err != nil {
 		return fmt.Errorf("ovh: error when call api to add record (%s): %w", reqURL, err)
 	}
@@ -201,7 +202,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	// Apply the change
 	reqURL = fmt.Sprintf("/domain/zone/%s/refresh", authZone)
 
-	err = d.client.Post(reqURL, nil, nil)
+	err = d.client.PostWithContext(ctx, reqURL, nil, nil)
 	if err != nil {
 		return fmt.Errorf("ovh: error when call api to refresh zone (%s): %w", reqURL, err)
 	}
@@ -214,10 +215,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ovh: could not find zone for domain %q: %w", domain, err)
 	}
@@ -229,8 +230,9 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("ovh: %w", err)
 	}
 
-	// Get all records for the zone
-	records, err := d.listTXTRecords(authZone)
+	// DigiCert fork: enumerate-then-delete every TXT record matching the challenge
+	// subdomain, rather than only the record ID captured at Present time.
+	records, err := d.listTXTRecords(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("ovh: error listing TXT records: %w", err)
 	}
@@ -246,7 +248,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 			fmt.Printf("ovh: deleting TXT record ID %d with subdomain %s and value %s\n",
 				record.ID, record.SubDomain, record.Target)
 
-			err = d.client.Delete(reqURL, nil)
+			err = d.client.DeleteWithContext(ctx, reqURL, nil)
 			if err != nil {
 				return fmt.Errorf("ovh: error when call OVH api to delete challenge record (%s): %w", reqURL, err)
 			}
@@ -261,7 +263,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	reqURL := fmt.Sprintf("/domain/zone/%s/refresh", authZone)
 	fmt.Printf("ovh: refreshing zone %s\n", authZone)
 
-	err = d.client.Post(reqURL, nil, nil)
+	err = d.client.PostWithContext(ctx, reqURL, nil, nil)
 	if err != nil {
 		return fmt.Errorf("ovh: error when call api to refresh zone (%s): %w", reqURL, err)
 	}
@@ -271,13 +273,13 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 // listTXTRecords lists all TXT records for the specified zone
-func (d *DNSProvider) listTXTRecords(zone string) ([]Record, error) {
+func (d *DNSProvider) listTXTRecords(ctx context.Context, zone string) ([]Record, error) {
 	// Get all record IDs for the zone
 	var recordIDs []int64
 	reqURL := fmt.Sprintf("/domain/zone/%s/record", zone)
 
 	// Using fieldType parameter for filtering directly in the API call
-	err := d.client.Get(reqURL, &recordIDs)
+	err := d.client.GetWithContext(ctx, reqURL, &recordIDs)
 	if err != nil {
 		return nil, fmt.Errorf("ovh: error getting record IDs: %w", err)
 	}
@@ -289,7 +291,7 @@ func (d *DNSProvider) listTXTRecords(zone string) ([]Record, error) {
 		var record Record
 		reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", zone, id)
 
-		err := d.client.Get(reqURL, &record)
+		err := d.client.GetWithContext(ctx, reqURL, &record)
 		if err != nil {
 			return nil, fmt.Errorf("ovh: error getting record details for ID %d: %w", id, err)
 		}

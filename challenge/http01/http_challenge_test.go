@@ -11,14 +11,15 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	"github.com/digicert/lego/v4/acme"
-	"github.com/digicert/lego/v4/acme/api"
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/acme"
+	"github.com/digicert/lego/v5/acme/api"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/internal/tester"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +72,7 @@ func TestChallenge(t *testing.T) {
 
 	providerServer := NewProviderServer("", "23457")
 
-	validate := func(_ *api.Core, _ string, chlng acme.Challenge) error {
+	validate := func(_ context.Context, _ *api.Core, _ string, chlng acme.Challenge) error {
 		uri := "http://localhost" + providerServer.GetAddress() + ChallengePath(chlng.Token)
 
 		resp, err := http.DefaultClient.Get(uri)
@@ -115,7 +116,7 @@ func TestChallenge(t *testing.T) {
 		},
 	}
 
-	err = solver.Solve(authz)
+	err = solver.Solve(t.Context(), authz)
 	require.NoError(t, err)
 }
 
@@ -133,7 +134,7 @@ func TestChallengeUnix(t *testing.T) {
 
 	providerServer := NewUnixProviderServer(socket, fs.ModeSocket|0o666)
 
-	validate := func(_ *api.Core, _ string, chlng acme.Challenge) error {
+	validate := func(_ context.Context, _ *api.Core, _ string, chlng acme.Challenge) error {
 		// any uri will do, as we hijack the dial
 		uri := "http://localhost" + ChallengePath(chlng.Token)
 
@@ -185,7 +186,7 @@ func TestChallengeUnix(t *testing.T) {
 		},
 	}
 
-	err = solver.Solve(authz)
+	err = solver.Solve(t.Context(), authz)
 	require.NoError(t, err)
 }
 
@@ -198,7 +199,7 @@ func TestChallengeInvalidPort(t *testing.T) {
 	core, err := api.New(server.Client(), "lego-test", server.URL+"/dir", "", privateKey)
 	require.NoError(t, err)
 
-	validate := func(_ *api.Core, _ string, _ acme.Challenge) error { return nil }
+	validate := func(_ context.Context, _ *api.Core, _ string, _ acme.Challenge) error { return nil }
 
 	solver := NewChallenge(core, validate, NewProviderServer("", "123456"))
 
@@ -211,7 +212,7 @@ func TestChallengeInvalidPort(t *testing.T) {
 		},
 	}
 
-	err = solver.Solve(authz)
+	err = solver.Solve(t.Context(), authz)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid port")
 	assert.Contains(t, err.Error(), "123456")
@@ -220,6 +221,10 @@ func TestChallengeInvalidPort(t *testing.T) {
 type testProxyHeader struct {
 	name   string
 	values []string
+}
+
+func newTestProxyHeader(name string, values ...string) *testProxyHeader {
+	return &testProxyHeader{name: textproto.CanonicalMIMEHeaderKey(name), values: values}
 }
 
 func (h *testProxyHeader) update(r *http.Request) {
@@ -235,11 +240,6 @@ func (h *testProxyHeader) update(r *http.Request) {
 }
 
 func TestChallengeWithProxy(t *testing.T) {
-	h := func(name string, values ...string) *testProxyHeader {
-		name = textproto.CanonicalMIMEHeaderKey(name)
-		return &testProxyHeader{name, values}
-	}
-
 	const (
 		ok   = "localhost:23457"
 		nook = "example.com"
@@ -257,109 +257,109 @@ func TestChallengeWithProxy(t *testing.T) {
 		},
 		{
 			name:   "empty string",
-			header: h(""),
+			header: newTestProxyHeader(""),
 		},
 		{
 			name:   "empty Host",
-			header: h("host"),
+			header: newTestProxyHeader("host"),
 		},
 		{
 			name:   "matching Host",
-			header: h("host", ok),
+			header: newTestProxyHeader("host", ok),
 		},
 		{
 			name:   "Host mismatch",
-			header: h("host", nook),
+			header: newTestProxyHeader("host", nook),
 			isErr:  true,
 		},
 		{
 			name:   "Host mismatch (ignoring forwarding header)",
-			header: h("host", nook),
-			extra:  h("X-Forwarded-Host", ok),
+			header: newTestProxyHeader("host", nook),
+			extra:  newTestProxyHeader("X-Forwarded-Host", ok),
 			isErr:  true,
 		},
 		// test for arbitraryMatcher
 		{
 			name:   "matching X-Forwarded-Host",
-			header: h("X-Forwarded-Host", ok),
+			header: newTestProxyHeader("X-Forwarded-Host", ok),
 		},
 		{
 			name:   "matching X-Forwarded-Host (multiple fields)",
-			header: h("X-Forwarded-Host", ok, nook),
+			header: newTestProxyHeader("X-Forwarded-Host", ok, nook),
 		},
 		{
 			name:   "matching X-Forwarded-Host (chain value)",
-			header: h("X-Forwarded-Host", ok+", "+nook),
+			header: newTestProxyHeader("X-Forwarded-Host", ok+", "+nook),
 		},
 		{
 			name:   "X-Forwarded-Host mismatch",
-			header: h("X-Forwarded-Host", nook),
-			extra:  h("host", ok),
+			header: newTestProxyHeader("X-Forwarded-Host", nook),
+			extra:  newTestProxyHeader("host", ok),
 			isErr:  true,
 		},
 		{
 			name:   "X-Forwarded-Host mismatch (multiple fields)",
-			header: h("X-Forwarded-Host", nook, ok),
+			header: newTestProxyHeader("X-Forwarded-Host", nook, ok),
 			isErr:  true,
 		},
 		{
 			name:   "matching X-Something-Else",
-			header: h("X-Something-Else", ok),
+			header: newTestProxyHeader("X-Something-Else", ok),
 		},
 		{
 			name:   "matching X-Something-Else (multiple fields)",
-			header: h("X-Something-Else", ok, nook),
+			header: newTestProxyHeader("X-Something-Else", ok, nook),
 		},
 		{
 			name:   "matching X-Something-Else (chain value)",
-			header: h("X-Something-Else", ok+", "+nook),
+			header: newTestProxyHeader("X-Something-Else", ok+", "+nook),
 		},
 		{
 			name:   "X-Something-Else mismatch",
-			header: h("X-Something-Else", nook),
+			header: newTestProxyHeader("X-Something-Else", nook),
 			isErr:  true,
 		},
 		{
 			name:   "X-Something-Else mismatch (multiple fields)",
-			header: h("X-Something-Else", nook, ok),
+			header: newTestProxyHeader("X-Something-Else", nook, ok),
 			isErr:  true,
 		},
 		{
 			name:   "X-Something-Else mismatch (chain value)",
-			header: h("X-Something-Else", nook+", "+ok),
+			header: newTestProxyHeader("X-Something-Else", nook+", "+ok),
 			isErr:  true,
 		},
 		// tests for forwardedHeader
 		{
 			name:   "matching Forwarded",
-			header: h("Forwarded", fmt.Sprintf("host=%q;foo=bar", ok)),
+			header: newTestProxyHeader("Forwarded", fmt.Sprintf("host=%q;foo=bar", ok)),
 		},
 		{
 			name:   "matching Forwarded (multiple fields)",
-			header: h("Forwarded", fmt.Sprintf("host=%q", ok), "host="+nook),
+			header: newTestProxyHeader("Forwarded", fmt.Sprintf("host=%q", ok), "host="+nook),
 		},
 		{
 			name:   "matching Forwarded (chain value)",
-			header: h("Forwarded", fmt.Sprintf("host=%q, host=%s", ok, nook)),
+			header: newTestProxyHeader("Forwarded", fmt.Sprintf("host=%q, host=%s", ok, nook)),
 		},
 		{
 			name:   "Forwarded mismatch",
-			header: h("Forwarded", "host="+nook),
+			header: newTestProxyHeader("Forwarded", "host="+nook),
 			isErr:  true,
 		},
 		{
 			name:   "Forwarded mismatch (missing information)",
-			header: h("Forwarded", "for=127.0.0.1"),
+			header: newTestProxyHeader("Forwarded", "for=127.0.0.1"),
 			isErr:  true,
 		},
 		{
 			name:   "Forwarded mismatch (multiple fields)",
-			header: h("Forwarded", "host="+nook, fmt.Sprintf("host=%q", ok)),
+			header: newTestProxyHeader("Forwarded", "host="+nook, fmt.Sprintf("host=%q", ok)),
 			isErr:  true,
 		},
 		{
 			name:   "Forwarded mismatch (chain value)",
-			header: h("Forwarded", fmt.Sprintf("host=%s, host=%q", nook, ok)),
+			header: newTestProxyHeader("Forwarded", fmt.Sprintf("host=%s, host=%q", nook, ok)),
 			isErr:  true,
 		},
 	}
@@ -376,15 +376,18 @@ func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectErro
 
 	server := tester.MockACMEServer().BuildHTTPS(t)
 
-	providerServer := NewProviderServer("localhost", "23457")
+	options := Options{Address: "localhost:23457"}
+
 	if header != nil {
-		providerServer.SetProxyHeader(header.name)
+		options.ProxyHeaderName = header.name
 	}
 
-	validate := func(_ *api.Core, _ string, chlng acme.Challenge) error {
+	providerServer := NewProviderServerWithOptions(options)
+
+	validate := func(ctx context.Context, _ *api.Core, _ string, chlng acme.Challenge) error {
 		uri := "http://" + providerServer.GetAddress() + ChallengePath(chlng.Token)
 
-		req, err := http.NewRequest(http.MethodGet, uri, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
 		if err != nil {
 			return err
 		}
@@ -399,7 +402,7 @@ func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectErro
 		defer resp.Body.Close()
 
 		if want := "text/plain"; resp.Header.Get("Content-Type") != want {
-			return fmt.Errorf("Get(%q) Content-Type: got %q, want %q", uri, resp.Header.Get("Content-Type"), want)
+			return fmt.Errorf("GET(%q) Content-Type: got %q, want %q", uri, resp.Header.Get("Content-Type"), want)
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -410,7 +413,7 @@ func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectErro
 		bodyStr := string(body)
 
 		if bodyStr != chlng.KeyAuthorization {
-			return fmt.Errorf("Get(%q) Body: got %q, want %q", uri, bodyStr, chlng.KeyAuthorization)
+			return fmt.Errorf("GET(%q) Body: got %q, want %q", uri, bodyStr, chlng.KeyAuthorization)
 		}
 
 		return nil
@@ -433,10 +436,48 @@ func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectErro
 		},
 	}
 
-	err = solver.Solve(authz)
+	err = solver.Solve(t.Context(), authz)
 	if expectError {
 		require.Error(t, err)
 	} else {
 		require.NoError(t, err)
+	}
+}
+
+func TestChallengePath(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		token    string
+		expected string
+	}{
+		{
+			desc:     "simple",
+			token:    "foo",
+			expected: "/.well-known/acme-challenge/foo",
+		},
+		{
+			desc:     "path",
+			token:    "../../../../../../tmp/data",
+			expected: "/.well-known/acme-challenge/invalid",
+		},
+		{
+			desc:     "path starting with slash",
+			token:    "/../../../../../../tmp/data",
+			expected: "/.well-known/acme-challenge/invalid",
+		},
+		{
+			desc:     "long path",
+			token:    "/foo/foo/foo/foo/foo/foo/foo/../../../../../../tmp/data",
+			expected: "/.well-known/acme-challenge/invalid",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, test.expected, ChallengePath(test.token))
+			assert.Equal(t, test.expected, path.Clean(ChallengePath(test.token)))
+		})
 	}
 }

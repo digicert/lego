@@ -7,9 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resourcegraph/armresourcegraph"
-	"github.com/digicert/lego/v4/providers/dns/internal/ptr"
+	"github.com/digicert/lego/v5/internal/ptr"
 )
 
 type ServiceDiscoveryZone struct {
@@ -40,9 +39,9 @@ func discoverDNSZones(ctx context.Context, config *Config, credentials azcore.To
 
 	// Set options
 	requestOptions := &armresourcegraph.QueryRequestOptions{
-		ResultFormat: to.Ptr(armresourcegraph.ResultFormatObjectArray),
-		Top:          to.Ptr(ResourceGraphQueryOptionsTop),
-		Skip:         to.Ptr[int32](0),
+		ResultFormat: new(armresourcegraph.ResultFormatObjectArray),
+		Top:          new(ResourceGraphQueryOptionsTop),
+		Skip:         new(int32(0)),
 	}
 
 	zones := map[string]ServiceDiscoveryZone{}
@@ -50,7 +49,7 @@ func discoverDNSZones(ctx context.Context, config *Config, credentials azcore.To
 	for {
 		// create the query request
 		request := armresourcegraph.QueryRequest{
-			Query:   to.Ptr(createGraphQuery(config)),
+			Query:   new(createGraphQuery(config)),
 			Options: requestOptions,
 		}
 

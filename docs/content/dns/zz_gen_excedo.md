@@ -28,7 +28,7 @@ Here is an example bash command using the Excedo provider:
 ```bash
 EXCEDO_API_KEY=your-api-key \
 EXCEDO_API_URL=your-base-url \
-lego --dns excedo -d '*.example.com' -d example.com run
+lego run --dns excedo -d '*.example.com' -d example.com
 ```
 
 
@@ -51,7 +51,7 @@ More information [here]({{% ref "dns#configuration-and-credentials" %}}).
 |--------------------------------|-------------|
 | `EXCEDO_HTTP_TIMEOUT` | API request timeout in seconds (Default: 30) |
 | `EXCEDO_POLLING_INTERVAL` | Time between DNS propagation check in seconds (Default: 10) |
-| `EXCEDO_PROPAGATION_TIMEOUT` | Maximum waiting time for DNS propagation in seconds (Default: 300) |
+| `EXCEDO_PROPAGATION_TIMEOUT` | Maximum waiting time for DNS propagation in seconds (Default: 600) |
 | `EXCEDO_TTL` | The TTL of the TXT record used for the DNS challenge in seconds (Default: 60) |
 
 The environment variable names can be suffixed by `_FILE` to reference a file instead of a value.

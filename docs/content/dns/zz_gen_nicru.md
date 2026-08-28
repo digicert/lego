@@ -30,7 +30,7 @@ NICRU_USER="<your_user>" \
 NICRU_PASSWORD="<your_password>" \
 NICRU_SERVICE_ID="<service_id>" \
 NICRU_SECRET="<service_secret>" \
-lego --dns nicru -d '*.example.com' -d example.com run
+lego run --dns nicru -d '*.example.com' -d example.com
 ```
 
 
@@ -43,7 +43,6 @@ lego --dns nicru -d '*.example.com' -d example.com run
 | `NICRU_PASSWORD` | Password for an account in RU CENTER |
 | `NICRU_SECRET` | Secret for application in DNS-hosting RU CENTER |
 | `NICRU_SERVICE_ID` | Service ID for application in DNS-hosting RU CENTER |
-| `NICRU_SERVICE_NAME` | Service Name for DNS-hosting RU CENTER |
 | `NICRU_USER` | Agreement for an account in RU CENTER |
 
 The environment variable names can be suffixed by `_FILE` to reference a file instead of a value.

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 	querystring "github.com/google/go-querystring/query"
 )
 
@@ -21,7 +21,7 @@ const statusSuccess = "ok"
 type Client struct {
 	apiToken string
 
-	baseURL    *url.URL
+	BaseURL    *url.URL
 	HTTPClient *http.Client
 }
 
@@ -42,7 +42,7 @@ func NewClient(baseURL, apiToken string) (*Client, error) {
 
 	return &Client{
 		apiToken:   apiToken,
-		baseURL:    apiEndpoint,
+		BaseURL:    apiEndpoint,
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 	}, nil
 }
@@ -50,7 +50,7 @@ func NewClient(baseURL, apiToken string) (*Client, error) {
 // AddRecord adds a resource record for an authoritative zone.
 // https://github.com/TechnitiumSoftware/DnsServer/blob/master/APIDOCS.md#add-record
 func (c *Client) AddRecord(ctx context.Context, record Record) (*Record, error) {
-	endpoint := c.baseURL.JoinPath("api", "zones", "records", "add")
+	endpoint := c.BaseURL.JoinPath("api", "zones", "records", "add")
 
 	req, err := c.newFormRequest(ctx, endpoint, record)
 	if err != nil {
@@ -74,7 +74,7 @@ func (c *Client) AddRecord(ctx context.Context, record Record) (*Record, error) 
 // DeleteRecord deletes a record from an authoritative zone.
 // https://github.com/TechnitiumSoftware/DnsServer/blob/master/APIDOCS.md#delete-record
 func (c *Client) DeleteRecord(ctx context.Context, record Record) error {
-	endpoint := c.baseURL.JoinPath("api", "zones", "records", "delete")
+	endpoint := c.BaseURL.JoinPath("api", "zones", "records", "delete")
 
 	req, err := c.newFormRequest(ctx, endpoint, record)
 	if err != nil {

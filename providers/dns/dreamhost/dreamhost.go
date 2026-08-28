@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/dreamhost/internal"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/dreamhost/internal"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 )
 
 // Environment variables names.
@@ -97,10 +97,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 }
 
 // Present creates a TXT record using the specified parameters.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	err := d.client.AddRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.AddRecord(ctx, dns01.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("dreamhost: %w", err)
 	}
@@ -109,11 +109,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
+
 	fqdn := dns01.UnFqdn(info.EffectiveFQDN)
 
-	records, err := d.client.ListRecords(context.Background())
+	// DigiCert fork: enumerate-then-delete, so every stale TXT record for the
+	// challenge FQDN is removed rather than only the one matching info.Value.
+	records, err := d.client.ListRecords(ctx)
 	if err != nil {
 		return fmt.Errorf("dreamhost: %w", err)
 	}
@@ -122,7 +125,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	for _, record := range records {
 		if record.Record == fqdn && record.Type == "TXT" {
-			err := d.client.RemoveRecord(context.Background(), fqdn, record.Value)
+			err := d.client.RemoveRecord(ctx, fqdn, record.Value)
 			if err != nil {
 				lastError = err
 			}

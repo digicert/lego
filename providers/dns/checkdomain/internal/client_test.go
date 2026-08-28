@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,8 @@ func mockBuilder() *servermock.Builder[*Client] {
 			return client, nil
 		},
 		servermock.CheckHeader().WithJSONHeaders().
-			WithAuthorization("Bearer secret"))
+			WithAuthorization("Bearer secret"),
+	)
 }
 
 func TestClient_GetDomainIDByName(t *testing.T) {
@@ -113,7 +114,8 @@ func TestClient_DeleteTXTRecord(t *testing.T) {
 			servermock.CheckRequestJSONBodyFromFixture("delete_txt_record-request.json")).
 		Build(t)
 
-	info := dns01.GetChallengeInfo(domainName, "abc")
+	info := dns01.GetChallengeInfo(t.Context(), domainName, "abc")
+
 	err := client.DeleteTXTRecord(t.Context(), 1, info.EffectiveFQDN, recordValue)
 	require.NoError(t, err)
 }

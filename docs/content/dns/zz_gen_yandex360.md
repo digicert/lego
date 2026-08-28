@@ -28,7 +28,7 @@ Here is an example bash command using the Yandex 360 provider:
 ```bash
 YANDEX360_OAUTH_TOKEN=<your OAuth Token> \
 YANDEX360_ORG_ID=<your organization ID> \
-lego --dns yandex360 -d '*.example.com' -d example.com run
+lego run --dns yandex360 -d '*.example.com' -d example.com
 ```
 
 
@@ -62,7 +62,7 @@ More information [here]({{% ref "dns#configuration-and-credentials" %}}).
 
 ## More information
 
-- [API documentation](https://yandex.ru/dev/api360/doc/ref/DomainDNSService.html)
+- [API documentation](https://yandex.ru/dev/api360/doc/ref/DomainDNSService/)
 
 <!-- THIS DOCUMENTATION IS AUTO-GENERATED. PLEASE DO NOT EDIT. -->
 <!-- providers/dns/yandex360/yandex360.toml -->

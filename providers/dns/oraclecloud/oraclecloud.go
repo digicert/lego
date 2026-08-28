@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/oci-go-sdk/common/v1065"
 	"github.com/nrdcg/oci-go-sdk/common/v1065/auth"
 	"github.com/nrdcg/oci-go-sdk/dns/v1065"
@@ -25,6 +25,9 @@ const (
 
 	EnvCompartmentOCID = envNamespace + "COMPARTMENT_OCID"
 	EnvRegion          = envNamespace + "REGION"
+
+	EnvProfile    = envNamespace + "PROFILE"
+	EnvConfigFile = envNamespace + "CONFIG_FILE"
 
 	envPrivKey           = envNamespace + "PRIVKEY"
 	EnvPrivKeyFile       = envPrivKey + "_FILE"
@@ -109,6 +112,18 @@ func NewDNSProvider() (*DNSProvider, error) {
 
 		config.OCIConfigProvider = configurationProvider
 
+	case string(common.UserPrincipal):
+		values, err := env.Get(EnvCompartmentOCID, EnvProfile)
+		if err != nil {
+			return nil, fmt.Errorf("oraclecloud: %w", err)
+		}
+
+		config.CompartmentID = values[EnvCompartmentOCID]
+
+		configFile := env.GetOrDefaultString(EnvConfigFile, "")
+
+		config.OCIConfigProvider = common.CustomProfileSessionTokenConfigProvider(configFile, values[EnvProfile])
+
 	default:
 		values, err := env.Get(EnvCompartmentOCID)
 		if err != nil {
@@ -155,33 +170,33 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	zoneNameOrID, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zoneNameOrID, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("oraclecloud: could not find zone for domain %q: %w", domain, err)
 	}
 
 	// generate request to dns.PatchDomainRecordsRequest
 	recordOperation := dns.RecordOperation{
-		Domain:      common.String(dns01.UnFqdn(info.EffectiveFQDN)),
-		Rdata:       common.String(info.Value),
-		Rtype:       common.String("TXT"),
-		Ttl:         common.Int(d.config.TTL),
-		IsProtected: common.Bool(false),
+		Domain:      new(dns01.UnFqdn(info.EffectiveFQDN)),
+		Rdata:       new(info.Value),
+		Rtype:       new("TXT"),
+		Ttl:         new(d.config.TTL),
+		IsProtected: new(false),
 	}
 
 	request := dns.PatchDomainRecordsRequest{
-		CompartmentId: common.String(d.config.CompartmentID),
-		ZoneNameOrId:  common.String(zoneNameOrID),
-		Domain:        common.String(dns01.UnFqdn(info.EffectiveFQDN)),
+		CompartmentId: new(d.config.CompartmentID),
+		ZoneNameOrId:  new(zoneNameOrID),
+		Domain:        new(dns01.UnFqdn(info.EffectiveFQDN)),
 		PatchDomainRecordsDetails: dns.PatchDomainRecordsDetails{
 			Items: []dns.RecordOperation{recordOperation},
 		},
 	}
 
-	_, err = d.client.PatchDomainRecords(context.Background(), request)
+	_, err = d.client.PatchDomainRecords(ctx, request)
 	if err != nil {
 		return fmt.Errorf("oraclecloud: %w", err)
 	}
@@ -190,23 +205,21 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
-	zoneNameOrID, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zoneNameOrID, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("oraclecloud: could not find zone for domain %q: %w", domain, err)
 	}
 
 	// search to TXT record's hash to delete
 	getRequest := dns.GetDomainRecordsRequest{
-		ZoneNameOrId:  common.String(zoneNameOrID),
-		Domain:        common.String(dns01.UnFqdn(info.EffectiveFQDN)),
-		CompartmentId: common.String(d.config.CompartmentID),
-		Rtype:         common.String("TXT"),
+		ZoneNameOrId:  new(zoneNameOrID),
+		Domain:        new(dns01.UnFqdn(info.EffectiveFQDN)),
+		CompartmentId: new(d.config.CompartmentID),
+		Rtype:         new("TXT"),
 	}
-
-	ctx := context.Background()
 
 	domainRecords, err := d.client.GetDomainRecords(ctx, getRequest)
 	if err != nil {
@@ -236,12 +249,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 
 	patchRequest := dns.PatchDomainRecordsRequest{
-		ZoneNameOrId: common.String(zoneNameOrID),
-		Domain:       common.String(dns01.UnFqdn(info.EffectiveFQDN)),
+		ZoneNameOrId: new(zoneNameOrID),
+		Domain:       new(dns01.UnFqdn(info.EffectiveFQDN)),
 		PatchDomainRecordsDetails: dns.PatchDomainRecordsDetails{
 			Items: []dns.RecordOperation{recordOperation},
 		},
-		CompartmentId: common.String(d.config.CompartmentID),
+		CompartmentId: new(d.config.CompartmentID),
 	}
 
 	_, err = d.client.PatchDomainRecords(ctx, patchRequest)

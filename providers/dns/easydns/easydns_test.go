@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +41,8 @@ func mockBuilder() *servermock.Builder[*DNSProvider] {
 			WithJSONHeaders().
 			WithAuthorization("Basic VE9LRU46U0VDUkVU"),
 		servermock.CheckQueryParameter().Strict().
-			With("format", "json"))
+			With("format", "json"),
+	)
 }
 
 func TestNewDNSProvider(t *testing.T) {
@@ -189,7 +190,7 @@ func TestDNSProvider_Present(t *testing.T) {
 `)).
 		Build(t)
 
-	err := provider.Present("example.com", "token", "keyAuth")
+	err := provider.Present(t.Context(), "example.com", "token", "keyAuth")
 	require.NoError(t, err)
 	require.Contains(t, provider.recordIDs, "_acme-challenge.example.com.|pW9ZKG0xz_PCriK-nCMOjADy9eJcgGWIzkkj2fN4uZM")
 }
@@ -220,7 +221,7 @@ func TestDNSProvider_Cleanup_WhenRecordIdNotSet_NoOp(t *testing.T) {
 	`)).
 		Build(t)
 
-	err := provider.CleanUp("example.com", "token", "keyAuth")
+	err := provider.CleanUp(t.Context(), "example.com", "token", "keyAuth")
 	require.NoError(t, err)
 }
 
@@ -261,7 +262,7 @@ func TestDNSProvider_Cleanup_WhenRecordIdSet_DeletesTxtRecord(t *testing.T) {
 
 	provider.recordIDs["_acme-challenge.example.com.|pW9ZKG0xz_PCriK-nCMOjADy9eJcgGWIzkkj2fN4uZM"] = "123456"
 
-	err := provider.CleanUp("example.com", "token", "keyAuth")
+	err := provider.CleanUp(t.Context(), "example.com", "token", "keyAuth")
 	require.NoError(t, err)
 }
 
@@ -303,7 +304,7 @@ func TestDNSProvider_Cleanup_WhenHttpError_ReturnsError(t *testing.T) {
 
 	provider.recordIDs["_acme-challenge.example.com.|pW9ZKG0xz_PCriK-nCMOjADy9eJcgGWIzkkj2fN4uZM"] = "123456"
 
-	err := provider.CleanUp("example.com", "token", "keyAuth")
+	err := provider.CleanUp(t.Context(), "example.com", "token", "keyAuth")
 
 	expectedError := fmt.Sprintf("easydns: unexpected status code: [status code: 406] body: %v", errorMessage)
 	require.EqualError(t, err, expectedError)
@@ -319,7 +320,7 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 
@@ -335,6 +336,6 @@ func TestLiveCleanUp(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	err = provider.CleanUp(envTest.GetDomain(), "", "123d==")
+	err = provider.CleanUp(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }

@@ -4,8 +4,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
-	"github.com/digicert/lego/v4/providers/dns/cpanel/internal/shared"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
+	"github.com/digicert/lego/v5/providers/dns/cpanel/internal/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,8 @@ func mockBuilder() *servermock.Builder[*Client] {
 			return client, nil
 		},
 		servermock.CheckHeader().WithJSONHeaders().
-			WithAuthorization("whm user:secret"))
+			WithAuthorization("whm user:secret"),
+	)
 }
 
 func TestClient_FetchZoneInformation(t *testing.T) {

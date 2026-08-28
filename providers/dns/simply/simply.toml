@@ -7,7 +7,7 @@ Since = "v4.4.0"
 Example = '''
 SIMPLY_ACCOUNT_NAME=xxxxxx \
 SIMPLY_API_KEY=yyyyyy \
-lego --dns simply -d '*.example.com' -d example.com run
+lego run --dns simply -d '*.example.com' -d example.com
 '''
 
 [Configuration]
@@ -22,4 +22,4 @@ lego --dns simply -d '*.example.com' -d example.com run
 
 [Links]
   API = "https://www.simply.com/en/docs/api/"
-  Spec = "https://generator.swagger.io/?url=https://api.simply.com/2/openapi.json#/"
+  Spec = "https://generator.swagger.io/?url=https://api.simply.com/2/doc.json#/"

@@ -1,0 +1,142 @@
+package cmd
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/digicert/lego/v5/certcrypto"
+	"github.com/digicert/lego/v5/cmd/internal/flags"
+	"github.com/digicert/lego/v5/cmd/internal/storage"
+	"github.com/digicert/lego/v5/internal"
+	"github.com/digicert/lego/v5/log"
+	"github.com/mattn/go-zglob"
+	"github.com/urfave/cli/v3"
+)
+
+type ListCertificate struct {
+	Name           string   `json:"name,omitempty"`
+	Domains        []string `json:"domains,omitempty"`
+	IPs            []string `json:"ips,omitempty"`
+	ExpirationDate string   `json:"expirationDate,omitempty"`
+	Expired        bool     `json:"expired"`
+	Issuer         string   `json:"issuer,omitempty"`
+	Path           string   `json:"path,omitempty"`
+}
+
+func createListCertificates() *cli.Command {
+	return &cli.Command{
+		Name:   "list",
+		Usage:  "Display information about certificates.",
+		Action: listCertificates,
+		Flags:  flags.CreateListFlags(),
+	}
+}
+
+func listCertificates(_ context.Context, cmd *cli.Command) error {
+	basePath := cmd.String(flags.FlgPath)
+
+	cfg, err := loadConfiguration(cmd)
+	if err == nil {
+		log.Debug("Configuration loaded from a file.", slog.String("cmd", "certificates list"))
+
+		basePath = cfg.Storage
+	}
+
+	if cmd.Bool(flags.FlgFormatJSON) {
+		return listCertificatesJSON(basePath)
+	}
+
+	return listCertificatesText(basePath)
+}
+
+func listCertificatesText(basePath string) error {
+	certs, err := readCertificates(basePath)
+	if err != nil {
+		return err
+	}
+
+	if len(certs) == 0 {
+		fmt.Println("No certificates were found.")
+
+		return nil
+	}
+
+	fmt.Println("Found the following certificates:")
+
+	for _, info := range certs {
+		fmt.Println(info.Name)
+
+		if info.Expired {
+			fmt.Println("├── Status: this certificate is expired.")
+		}
+
+		if len(info.Domains) > 0 {
+			fmt.Println("├── Domains:", strings.Join(info.Domains, ", "))
+		}
+
+		if len(info.IPs) > 0 {
+			fmt.Println("├── IPs:", strings.Join(info.IPs, ","))
+		}
+
+		fmt.Println("├── Expiration Date:", info.ExpirationDate)
+		fmt.Println("├── Issuer:", info.Issuer)
+		fmt.Println("└── Certificate Path:", info.Path)
+		fmt.Println()
+	}
+
+	return nil
+}
+
+func listCertificatesJSON(basePath string) error {
+	certs, err := readCertificates(basePath)
+	if err != nil {
+		return err
+	}
+
+	return json.NewEncoder(os.Stdout).Encode(certs)
+}
+
+func readCertificates(basePath string) ([]ListCertificate, error) {
+	certsStorage := storage.NewCertificatesStorage(basePath)
+
+	matches, err := zglob.Glob(filepath.Join(certsStorage.GetRootPath(), "**", "*.json"))
+	if err != nil {
+		return nil, err
+	}
+
+	var certificates []ListCertificate
+
+	for _, filename := range matches {
+		certFilename := strings.TrimSuffix(filename, storage.ExtResource) + storage.ExtCert
+
+		data, err := os.ReadFile(certFilename)
+		if err != nil {
+			return nil, err
+		}
+
+		pCert, err := certcrypto.ParsePEMCertificate(data)
+		if err != nil {
+			return nil, err
+		}
+
+		name := strings.TrimSuffix(filepath.Base(certFilename), storage.ExtCert)
+
+		certificates = append(certificates, ListCertificate{
+			Name:           name,
+			Domains:        pCert.DNSNames,
+			IPs:            internal.ToStringSlice(pCert.IPAddresses),
+			ExpirationDate: pCert.NotAfter.String(),
+			Expired:        pCert.NotAfter.Before(time.Now()),
+			Issuer:         pCert.Issuer.String(),
+			Path:           certFilename,
+		})
+	}
+
+	return certificates, nil
+}

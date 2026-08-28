@@ -1,20 +1,20 @@
 ---
-title: "Stackpath"
+title: "Stackpath (Deprecated)"
 date: 2019-03-03T16:39:46+01:00
 draft: false
 slug: stackpath
 dnsprovider:
   since:    "v1.1.0"
   code:     "stackpath"
-  url:      "https://www.stackpath.com/"
+  url:      "https://en.wikipedia.org/wiki/StackPath"
 ---
 
 <!-- THIS DOCUMENTATION IS AUTO-GENERATED. PLEASE DO NOT EDIT. -->
 <!-- providers/dns/stackpath/stackpath.toml -->
 <!-- THIS DOCUMENTATION IS AUTO-GENERATED. PLEASE DO NOT EDIT. -->
 
+The Stackpath DNS provider shut down in 2024.
 
-Configuration for [Stackpath](https://www.stackpath.com/).
 
 
 <!--more-->
@@ -23,13 +23,13 @@ Configuration for [Stackpath](https://www.stackpath.com/).
 - Since: v1.1.0
 
 
-Here is an example bash command using the Stackpath provider:
+Here is an example bash command using the Stackpath (Deprecated) provider:
 
 ```bash
 STACKPATH_CLIENT_ID=xxxxx \
 STACKPATH_CLIENT_SECRET=yyyyy \
 STACKPATH_STACK_ID=zzzzz \
-lego --dns stackpath -d '*.example.com' -d example.com run
+lego run --dns stackpath -d '*.example.com' -d example.com
 ```
 
 
@@ -61,9 +61,6 @@ More information [here]({{% ref "dns#configuration-and-credentials" %}}).
 
 
 
-## More information
-
-- [API documentation](https://developer.stackpath.com/en/api/dns/#tag/Zone)
 
 <!-- THIS DOCUMENTATION IS AUTO-GENERATED. PLEASE DO NOT EDIT. -->
 <!-- providers/dns/stackpath/stackpath.toml -->

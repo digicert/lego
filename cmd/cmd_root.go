@@ -1,0 +1,60 @@
+package cmd
+
+import (
+	"context"
+	"errors"
+
+	"github.com/digicert/lego/v5/cmd/internal/flags"
+	"github.com/digicert/lego/v5/cmd/internal/root"
+	"github.com/digicert/lego/v5/cmd/internal/storage"
+	"github.com/urfave/cli/v3"
+)
+
+// CreateRootCommand Creates the root CLI command.
+func CreateRootCommand() *cli.Command {
+	return &cli.Command{
+		Name:                  "lego",
+		Usage:                 "ACME client written in Go",
+		EnableShellCompletion: true,
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			setUpLogger(cmd, nil)
+
+			if cmd.NArg() > 0 && cmd.Command(cmd.Args().First()) == nil {
+				return ctx, errors.New("unknown command")
+			}
+
+			return ctx, nil
+		},
+		Action:   rootRun,
+		Flags:    flags.CreateRootFlags(),
+		Commands: createCommands(),
+	}
+}
+
+// createCommands Creates all CLI commands.
+func createCommands() []*cli.Command {
+	return []*cli.Command{
+		createRun(),
+		createCertificates(),
+		createAccounts(),
+		createArchives(),
+		createDNSHelp(),
+		createMigrate(),
+	}
+}
+
+func rootRun(ctx context.Context, cmd *cli.Command) error {
+	cfg, err := loadConfiguration(cmd)
+	if err != nil {
+		return err
+	}
+
+	err = root.Process(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	store := storage.NewConfigurationStorage(cfg.Storage)
+
+	return store.Backup(cfg)
+}

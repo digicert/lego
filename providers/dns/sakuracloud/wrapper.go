@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/sacloud/iaas-api-go"
-	"github.com/sacloud/iaas-api-go/search"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/sacloud/sacloud-sdk-go/api/iaas"
+	"github.com/sacloud/sacloud-sdk-go/api/iaas/search"
 )
 
 // This mutex is required for concurrent updates.
@@ -82,7 +82,7 @@ func (d *DNSProvider) cleanupTXTRecord(ctx context.Context, fqdn, value string) 
 }
 
 func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (*iaas.DNS, error) {
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 // DefaultBaseURL is url to the XML-RPC api.
