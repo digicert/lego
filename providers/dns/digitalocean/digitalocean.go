@@ -148,6 +148,7 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 	if err != nil {
 		return fmt.Errorf("digitalocean: could not find zone for domain %q: %w", domain, err)
 	}
+
 	fmt.Printf("digitalocean: cleaning up TXT records for domain %s, zone %s\n", domain, authZone)
 	// First try from our record ID map
 	d.recordIDsMu.Lock()
@@ -156,6 +157,7 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 
 	if ok {
 		fmt.Printf("digitalocean: found record ID %d in map for token %s\n", recordID, token)
+
 		err = d.client.RemoveTxtRecord(ctx, authZone, recordID)
 		if err != nil {
 			return fmt.Errorf("digitalocean: failed to remove TXT record with ID %d: %w", recordID, err)
@@ -186,5 +188,6 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 			fmt.Printf("digitalocean: successfully deleted TXT record with ID %d\n", record.ID)
 		}
 	}
+
 	return nil
 }

@@ -32,6 +32,7 @@ func allDNSCodes() string {
 		"binarylane",
 		"bindman",
 		"bluecat",
+		"bluecatmicetro",
 		"bluecatv2",
 		"bookmyname",
 		"bunny",
@@ -672,6 +673,25 @@ func displayDNSHelp(w io.Writer, name string) error {
 
 		ew.writeln()
 		ew.writeln(`More information: https://go-acme.github.io/lego/dns/bluecat`)
+
+	case "bluecatmicetro":
+		// generated from: providers/dns/bluecatmicetro/bluecatmicetro.toml
+		ew.writeln(`Configuration for BlueCat Micetro.`)
+		ew.writeln(`Code:	'bluecatmicetro'`)
+		ew.writeln(`Since:	'v4.31.0'`)
+		ew.writeln()
+
+		ew.writeln(`Credentials:`)
+		ew.writeln(`	- "BLUECAT_MICETRO_ENDPOINT":	The Micetro Web Services API base URL, including scheme, host, and API path (e.g. https://micetro.example.com/mmws/api/v2)`)
+		ew.writeln(`	- "BLUECAT_MICETRO_PASSWORD":	API password`)
+		ew.writeln(`	- "BLUECAT_MICETRO_USERNAME":	API username`)
+		ew.writeln()
+
+		ew.writeln(`Additional Configuration:`)
+		ew.writeln(`	- "BLUECAT_MICETRO_TTL":	The TTL of the TXT record used for the DNS challenge in seconds (Default: 10)`)
+
+		ew.writeln()
+		ew.writeln(`More information: https://go-acme.github.io/lego/dns/bluecatmicetro`)
 
 	case "bluecatv2":
 		// generated from: providers/dns/bluecatv2/bluecatv2.toml

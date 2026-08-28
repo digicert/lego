@@ -271,6 +271,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return bindman.NewDNSProvider()
 	case "bluecat":
 		return bluecat.NewDNSProvider()
+	case "bluecatmicetro":
+		return bluecatmicetro.NewDNSProvider()
 	case "bluecatv2":
 		return bluecatv2.NewDNSProvider()
 	case "bookmyname":
@@ -483,8 +485,6 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return metaname.NewDNSProvider()
 	case "metaregistrar":
 		return metaregistrar.NewDNSProvider()
-	case "bluecatmicetro":
-		return bluecatmicetro.NewDNSProvider()
 	case "mijnhost":
 		return mijnhost.NewDNSProvider()
 	case "mittwald":

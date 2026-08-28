@@ -10,11 +10,11 @@ import (
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/dara"
 	"github.com/aliyun/credentials-go/credentials"
-	alidns "github.com/go-acme/alidns-20150109/v5/client"
 	"github.com/digicert/lego/v5/challenge"
 	"github.com/digicert/lego/v5/challenge/dns01"
 	"github.com/digicert/lego/v5/internal/ptr"
 	"github.com/digicert/lego/v5/platform/env"
+	alidns "github.com/go-acme/alidns-20150109/v5/client"
 	"golang.org/x/net/idna"
 )
 

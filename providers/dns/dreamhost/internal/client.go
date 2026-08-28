@@ -128,6 +128,7 @@ func (c *Client) ListRecords(ctx context.Context) ([]Record, error) {
 	}
 
 	var response ListRecordsResponse
+
 	err = json.Unmarshal(raw, &response)
 	if err != nil {
 		return nil, errutils.NewUnmarshalError(req, resp.StatusCode, raw, err)

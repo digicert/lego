@@ -242,20 +242,23 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 	deletionCount := 0
 	// Delete records matching the FQDN
 	for _, record := range records {
-		if record.SubDomain == subDomain && record.FieldType == "TXT" {
-			reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", authZone, record.ID)
-
-			fmt.Printf("ovh: deleting TXT record ID %d with subdomain %s and value %s\n",
-				record.ID, record.SubDomain, record.Target)
-
-			err = d.client.DeleteWithContext(ctx, reqURL, nil)
-			if err != nil {
-				return fmt.Errorf("ovh: error when call OVH api to delete challenge record (%s): %w", reqURL, err)
-			}
-
-			deletionCount++
-			fmt.Printf("ovh: successfully deleted TXT record ID %d\n", record.ID)
+		if record.SubDomain != subDomain || record.FieldType != "TXT" {
+			continue
 		}
+
+		reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", authZone, record.ID)
+
+		fmt.Printf("ovh: deleting TXT record ID %d with subdomain %s and value %s\n",
+			record.ID, record.SubDomain, record.Target)
+
+		err = d.client.DeleteWithContext(ctx, reqURL, nil)
+		if err != nil {
+			return fmt.Errorf("ovh: error when call OVH api to delete challenge record (%s): %w", reqURL, err)
+		}
+
+		deletionCount++
+
+		fmt.Printf("ovh: successfully deleted TXT record ID %d\n", record.ID)
 	}
 
 	fmt.Printf("ovh: deleted %d TXT records for subdomain %s in zone %s\n", deletionCount, subDomain, authZone)
@@ -269,13 +272,15 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 	}
 
 	fmt.Printf("ovh: zone %s refreshed successfully\n", authZone)
+
 	return nil
 }
 
-// listTXTRecords lists all TXT records for the specified zone
+// listTXTRecords lists all TXT records for the specified zone.
 func (d *DNSProvider) listTXTRecords(ctx context.Context, zone string) ([]Record, error) {
 	// Get all record IDs for the zone
 	var recordIDs []int64
+
 	reqURL := fmt.Sprintf("/domain/zone/%s/record", zone)
 
 	// Using fieldType parameter for filtering directly in the API call
@@ -289,6 +294,7 @@ func (d *DNSProvider) listTXTRecords(ctx context.Context, zone string) ([]Record
 	// Then get details for each record and filter by TXT type
 	for _, id := range recordIDs {
 		var record Record
+
 		reqURL := fmt.Sprintf("/domain/zone/%s/record/%d", zone, id)
 
 		err := d.client.GetWithContext(ctx, reqURL, &record)

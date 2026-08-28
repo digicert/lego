@@ -1,0 +1,20 @@
+Name = "BlueCat Micetro"
+Description = ''''''
+URL = "https://bluecatnetworks.com/integrations/micetro/"
+Code = "bluecatmicetro"
+Since = "v4.31.0"
+
+Example = '''
+BLUECAT_MICETRO_ENDPOINT="https://micetro.example.com/mmws/api/v2" \
+BLUECAT_MICETRO_USERNAME="xxx" \
+BLUECAT_MICETRO_PASSWORD="yyy" \
+lego run --dns bluecatmicetro -d '*.example.com' -d example.com
+'''
+
+[Configuration]
+  [Configuration.Credentials]
+    BLUECAT_MICETRO_ENDPOINT = "The Micetro Web Services API base URL, including scheme, host, and API path (e.g. https://micetro.example.com/mmws/api/v2)"
+    BLUECAT_MICETRO_USERNAME = "API username"
+    BLUECAT_MICETRO_PASSWORD = "API password"
+  [Configuration.Additional]
+    BLUECAT_MICETRO_TTL = "The TTL of the TXT record used for the DNS challenge in seconds (Default: 10)"

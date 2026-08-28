@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dnsimple/dnsimple-go/v9/dnsimple"
 	"github.com/digicert/lego/v5/challenge"
 	"github.com/digicert/lego/v5/challenge/dns01"
 	"github.com/digicert/lego/v5/internal/useragent"
 	"github.com/digicert/lego/v5/platform/env"
 	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
+	"github.com/dnsimple/dnsimple-go/v9/dnsimple"
 	"golang.org/x/oauth2"
 )
 

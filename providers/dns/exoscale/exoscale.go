@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	egoscale "github.com/exoscale/egoscale/v3"
-	"github.com/exoscale/egoscale/v3/credentials"
 	"github.com/digicert/lego/v5/challenge"
 	"github.com/digicert/lego/v5/challenge/dns01"
 	"github.com/digicert/lego/v5/internal/useragent"
 	"github.com/digicert/lego/v5/platform/env"
 	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
+	egoscale "github.com/exoscale/egoscale/v3"
+	"github.com/exoscale/egoscale/v3/credentials"
 )
 
 // Environment variables names.

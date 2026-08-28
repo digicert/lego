@@ -49,6 +49,7 @@ func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 	if cfg.Endpoint == "" {
 		return nil, fmt.Errorf("bluecatmicetro: %s must be set", envEndpoint)
 	}
+
 	if cfg.Username == "" || cfg.Password == "" {
 		return nil, fmt.Errorf("bluecatmicetro: provide %s/%s", envUsername, envPassword)
 	}

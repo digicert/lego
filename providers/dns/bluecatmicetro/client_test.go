@@ -12,9 +12,11 @@ func TestLoginSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/v2/micetro/sessions" && r.Method == http.MethodPost {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"result":{"session":"mock-session-key"}}`))
+			_, _ = w.Write([]byte(`{"result":{"session":"mock-session-key"}}`))
+
 			return
 		}
+
 		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
 	}))
 	defer server.Close()
@@ -41,13 +43,17 @@ func TestAddTXTRecord(t *testing.T) {
 			if !strings.Contains(rec, "TXT") {
 				t.Fatalf("expected TXT record in query, got %s", rec)
 			}
+
 			w.WriteHeader(http.StatusOK)
+
 			return
 		}
+
 		if r.URL.Path == "/v2/micetro/sessions" {
-			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			_, _ = w.Write([]byte(`{"result":{"session":"mock-session"}}`))
 			return
 		}
+
 		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
 	}))
 	defer server.Close()
@@ -70,10 +76,12 @@ func TestDeleteTXTRecord(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+
 		if r.URL.Path == "/v2/micetro/sessions" {
-			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			_, _ = w.Write([]byte(`{"result":{"session":"mock-session"}}`))
 			return
 		}
+
 		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
 	}))
 	defer server.Close()
@@ -93,13 +101,15 @@ func TestDeleteTXTRecord(t *testing.T) {
 func TestListZones(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/v2/dnsZones" && r.Method == http.MethodGet {
-			w.Write([]byte(`{"result":{"dnsZones":[{"name":"zone1."},{"name":"zone2."}]}}`))
+			_, _ = w.Write([]byte(`{"result":{"dnsZones":[{"name":"zone1."},{"name":"zone2."}]}}`))
 			return
 		}
+
 		if r.URL.Path == "/v2/micetro/sessions" {
-			w.Write([]byte(`{"result":{"session":"mock-session"}}`))
+			_, _ = w.Write([]byte(`{"result":{"session":"mock-session"}}`))
 			return
 		}
+
 		t.Fatalf("Unexpected request: %s %s", r.Method, r.URL.Path)
 	}))
 	defer server.Close()

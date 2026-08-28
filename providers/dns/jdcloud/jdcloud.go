@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
 	"github.com/go-acme/jdcloud-sdk-go/core"
 	"github.com/go-acme/jdcloud-sdk-go/services/domainservice/apis"
 	jdcclient "github.com/go-acme/jdcloud-sdk-go/services/domainservice/client"
 	domainservice "github.com/go-acme/jdcloud-sdk-go/services/domainservice/models"
-	"github.com/digicert/lego/v5/challenge"
-	"github.com/digicert/lego/v5/challenge/dns01"
-	"github.com/digicert/lego/v5/platform/env"
 )
 
 // Environment variables names.
