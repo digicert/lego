@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 	querystring "github.com/google/go-querystring/query"
 )
 

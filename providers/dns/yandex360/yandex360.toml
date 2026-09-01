@@ -8,7 +8,7 @@ Since = "v4.14.0"
 Example = '''
 YANDEX360_OAUTH_TOKEN=<your OAuth Token> \
 YANDEX360_ORG_ID=<your organization ID> \
-lego --dns yandex360 -d '*.example.com' -d example.com run
+lego run --dns yandex360 -d '*.example.com' -d example.com
 '''
 
 [Configuration]
@@ -22,4 +22,4 @@ lego --dns yandex360 -d '*.example.com' -d example.com run
     YANDEX360_HTTP_TIMEOUT = "API request timeout in seconds (Default: 30)"
 
 [Links]
-  API = "https://yandex.ru/dev/api360/doc/ref/DomainDNSService.html"
+  API = "https://yandex.ru/dev/api360/doc/ref/DomainDNSService/"

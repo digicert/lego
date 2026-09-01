@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/nrdcg/oci-go-sdk/common/v1065"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +37,10 @@ var envTest = tester.NewEnvTest(
 	EnvUserOCID,
 	EnvPubKeyFingerprint,
 	EnvRegion,
-	EnvCompartmentOCID).
+	EnvCompartmentOCID,
+	EnvProfile,
+	EnvConfigFile,
+).
 	WithDomain(envDomain)
 
 func TestNewDNSProvider(t *testing.T) {
@@ -279,6 +282,78 @@ func TestNewDNSProvider_instance_principal(t *testing.T) {
 	}
 }
 
+func TestNewDNSProvider_user_principal(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		envVars  map[string]string
+		expected string
+	}{
+		{
+			desc: "success",
+			envVars: map[string]string{
+				EnvAuthType:        "user_principal",
+				EnvCompartmentOCID: "123",
+				EnvProfile:         "a",
+				EnvConfigFile:      "./fixtures/config.ini",
+			},
+		},
+		{
+			desc: "missing CompartmentID",
+			envVars: map[string]string{
+				EnvAuthType:        "user_principal",
+				EnvCompartmentOCID: "",
+				EnvProfile:         "a",
+				EnvConfigFile:      "./fixtures/config.ini",
+			},
+			expected: "oraclecloud: some credentials information are missing: OCI_COMPARTMENT_OCID",
+		},
+		{
+			desc: "missing profile",
+			envVars: map[string]string{
+				EnvAuthType:        "user_principal",
+				EnvCompartmentOCID: "123",
+				EnvProfile:         "",
+				EnvConfigFile:      "./fixtures/config.ini",
+			},
+			expected: "oraclecloud: some credentials information are missing: OCI_PROFILE",
+		},
+		{
+			desc: "missing credentials",
+			envVars: map[string]string{
+				EnvAuthType:        "user_principal",
+				EnvCompartmentOCID: "",
+				EnvProfile:         "",
+				EnvConfigFile:      "./fixtures/config.ini",
+			},
+			expected: "oraclecloud: some credentials information are missing: OCI_COMPARTMENT_OCID,OCI_PROFILE",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.desc, func(t *testing.T) {
+			defer func() {
+				envTest.RestoreEnv()
+			}()
+
+			envTest.ClearEnv()
+
+			envTest.Apply(test.envVars)
+
+			p, err := NewDNSProvider()
+
+			if test.expected == "" {
+				require.NoError(t, err)
+				require.NotNil(t, p)
+				require.NotNil(t, p.config)
+				require.NotNil(t, p.client)
+			} else {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), test.expected)
+			}
+		})
+	}
+}
+
 func TestNewDNSProviderConfig(t *testing.T) {
 	envTest.ClearEnv()
 	defer envTest.RestoreEnv()
@@ -337,7 +412,7 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 
@@ -353,7 +428,7 @@ func TestLiveCleanUp(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	err = provider.CleanUp(envTest.GetDomain(), "", "123d==")
+	err = provider.CleanUp(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 

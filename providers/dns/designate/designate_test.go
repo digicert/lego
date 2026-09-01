@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/internal/tester"
 	"github.com/gophercloud/utils/openstack/clientconfig"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -321,7 +321,6 @@ func setupTestProvider(t *testing.T) string {
 		]
 	}
 }`))
-		w.WriteHeader(http.StatusOK)
 	})
 
 	return server.URL
@@ -337,7 +336,7 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 
@@ -353,6 +352,6 @@ func TestLiveCleanUp(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	err = provider.CleanUp(envTest.GetDomain(), "", "123d==")
+	err = provider.CleanUp(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }

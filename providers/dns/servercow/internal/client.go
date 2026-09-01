@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 const baseAPIURL = "https://api.servercow.de/dns/v1/domains"
@@ -164,9 +164,7 @@ func unmarshal(raw []byte, v any) error {
 		return nil
 	}
 
-	var utErr *json.UnmarshalTypeError
-
-	if !errors.As(err, &utErr) {
+	if _, ok := errors.AsType[*json.UnmarshalTypeError](err); !ok {
 		return fmt.Errorf("unmarshaling %T error: %w: %s", v, err, string(raw))
 	}
 

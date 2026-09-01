@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -153,7 +153,7 @@ func TestNewDNSProvider_Present(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			p := test.builder.Build(t)
 
-			err := p.Present("domain", "token", "key")
+			err := p.Present(t.Context(), "domain", "token", "key")
 			if test.expectedError == "" {
 				require.NoError(t, err)
 			} else {
@@ -214,7 +214,7 @@ func TestNewDNSProvider_Cleanup(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			p := test.builder.Build(t)
 
-			err := p.CleanUp("domain", "token", "key")
+			err := p.CleanUp(t.Context(), "domain", "token", "key")
 			if test.expectedError == "" {
 				require.NoError(t, err)
 			} else {
@@ -233,7 +233,8 @@ func mockBuilder(mode string) *servermock.Builder[*DNSProvider] {
 			config.Mode = mode
 
 			return NewDNSProviderConfig(config)
-		})
+		},
+	)
 }
 
 func mockBuilderWithPathPrefix(mode, prefix string) *servermock.Builder[*DNSProvider] {
@@ -245,7 +246,8 @@ func mockBuilderWithPathPrefix(mode, prefix string) *servermock.Builder[*DNSProv
 			config.Mode = mode
 
 			return NewDNSProviderConfig(config)
-		})
+		},
+	)
 }
 
 func mockBuilderWithBasicAuth(username, password string) *servermock.Builder[*DNSProvider] {
@@ -259,7 +261,8 @@ func mockBuilderWithBasicAuth(username, password string) *servermock.Builder[*DN
 
 			return NewDNSProviderConfig(config)
 		},
-		servermock.CheckHeader().WithBasicAuth("user", "secret"))
+		servermock.CheckHeader().WithBasicAuth("user", "secret"),
+	)
 }
 
 func mustParse(rawURL string) *url.URL {

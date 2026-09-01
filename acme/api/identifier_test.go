@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/digicert/lego/v4/acme"
+	"github.com/digicert/lego/v5/acme"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,7 +77,8 @@ func mockBuilder() *servermock.Builder[*DNSProvider] {
 			return p, nil
 		},
 		servermock.CheckHeader().
-			WithContentTypeFromURLEncoded())
+			WithContentTypeFromURLEncoded(),
+	)
 }
 
 func TestDNSProvider_Present(t *testing.T) {
@@ -100,7 +101,7 @@ func TestDNSProvider_Present(t *testing.T) {
 		).
 		Build(t)
 
-	err := provider.Present("example.com", "abc", "123d==")
+	err := provider.Present(t.Context(), "example.com", "abc", "123d==")
 	require.NoError(t, err)
 }
 
@@ -122,6 +123,6 @@ func TestDNSProvider_CleanUp(t *testing.T) {
 
 	provider.recordIDs["abc"] = 123
 
-	err := provider.CleanUp("example.com", "abc", "123d==")
+	err := provider.CleanUp(t.Context(), "example.com", "abc", "123d==")
 	require.NoError(t, err)
 }

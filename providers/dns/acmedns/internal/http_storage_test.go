@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/nrdcg/goacmedns"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,8 @@ func mockBuilder() *servermock.Builder[*HTTPStorage] {
 
 			return storage, nil
 		},
-		servermock.CheckHeader().WithJSONHeaders())
+		servermock.CheckHeader().WithJSONHeaders(),
+	)
 }
 
 func TestHTTPStorage_Fetch(t *testing.T) {

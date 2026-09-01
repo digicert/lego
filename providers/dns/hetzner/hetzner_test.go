@@ -3,10 +3,10 @@ package hetzner
 import (
 	"testing"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/providers/dns/hetzner/internal/hetznerv1"
-	"github.com/digicert/lego/v4/providers/dns/hetzner/internal/legacy"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/providers/dns/hetzner/internal/hetznerv1"
+	"github.com/digicert/lego/v5/providers/dns/hetzner/internal/legacy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

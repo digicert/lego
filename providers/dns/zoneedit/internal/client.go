@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 const defaultBaseURL = "https://dynamic.zoneedit.com"
@@ -21,7 +22,7 @@ type Client struct {
 	user      string
 	authToken string
 
-	baseURL    *url.URL
+	BaseURL    *url.URL
 	HTTPClient *http.Client
 }
 
@@ -36,28 +37,28 @@ func NewClient(user, authToken string) (*Client, error) {
 	return &Client{
 		user:       user,
 		authToken:  authToken,
-		baseURL:    baseURL,
+		BaseURL:    baseURL,
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 	}, nil
 }
 
-func (c *Client) CreateTXTRecord(domain, rdata string) error {
-	return c.perform("txt-create.php", domain, rdata)
+func (c *Client) CreateTXTRecord(ctx context.Context, domain, rdata string) error {
+	return c.perform(ctx, "txt-create.php", domain, rdata)
 }
 
-func (c *Client) DeleteTXTRecord(domain, rdata string) error {
-	return c.perform("txt-delete.php", domain, rdata)
+func (c *Client) DeleteTXTRecord(ctx context.Context, domain, rdata string) error {
+	return c.perform(ctx, "txt-delete.php", domain, rdata)
 }
 
-func (c *Client) perform(actionPath, domain, rdata string) error {
-	endpoint := c.baseURL.JoinPath(actionPath)
+func (c *Client) perform(ctx context.Context, actionPath, domain, rdata string) error {
+	endpoint := c.BaseURL.JoinPath(actionPath)
 
 	query := endpoint.Query()
 	query.Set("host", domain)
 	query.Set("rdata", rdata)
 	endpoint.RawQuery = query.Encode()
 
-	req, err := http.NewRequest(http.MethodGet, endpoint.String(), http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), http.NoBody)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (c *Client) do(req *http.Request) error {
 
 	raw = bytes.TrimSpace(raw)
 
-	// The answer is not an XML valid (missing closing), so I fix it to parse it.
+	// The answer is not a XML valid (missing closing), so I fix it to be able to parse it.
 	if bytes.HasSuffix(raw, []byte(">")) {
 		raw = slices.Concat(raw[:len(raw)-1], []byte("/>"))
 	}

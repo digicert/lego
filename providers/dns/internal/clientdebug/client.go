@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/digicert/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v5/platform/env"
 )
 
 const replacement = "***"

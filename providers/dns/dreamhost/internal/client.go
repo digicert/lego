@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 // DefaultBaseURL the default API endpoint.
@@ -128,6 +128,7 @@ func (c *Client) ListRecords(ctx context.Context) ([]Record, error) {
 	}
 
 	var response ListRecordsResponse
+
 	err = json.Unmarshal(raw, &response)
 	if err != nil {
 		return nil, errutils.NewUnmarshalError(req, resp.StatusCode, raw, err)

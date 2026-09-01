@@ -1,10 +1,13 @@
 package vercel
 
 import (
+	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,7 +103,7 @@ func TestLivePresent(t *testing.T) {
 	provider, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	err = provider.Present(envTest.GetDomain(), "", "123d==")
+	err = provider.Present(t.Context(), envTest.GetDomain(), "", "123d==")
 	require.NoError(t, err)
 }
 
@@ -116,6 +119,61 @@ func TestLiveCleanUp(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	err = provider.CleanUp(envTest.GetDomain(), "", "123d==")
+	err = provider.CleanUp(t.Context(), envTest.GetDomain(), "", "123d==")
+	require.NoError(t, err)
+}
+
+func mockBuilder() *servermock.Builder[*DNSProvider] {
+	return servermock.NewBuilder(
+		func(server *httptest.Server) (*DNSProvider, error) {
+			config := NewDefaultConfig()
+			config.TeamID = "123"
+			config.AuthToken = "secret"
+			config.HTTPClient = server.Client()
+
+			p, err := NewDNSProviderConfig(config)
+			if err != nil {
+				return nil, err
+			}
+
+			p.client.BaseURL, _ = url.Parse(server.URL)
+
+			return p, nil
+		},
+		servermock.CheckHeader().
+			WithJSONHeaders().
+			WithAuthorization("Bearer secret"),
+	)
+}
+
+func TestDNSProvider_Present(t *testing.T) {
+	provider := mockBuilder().
+		Route("POST /v2/domains/example.com/records",
+			servermock.ResponseFromInternal("create_record.json"),
+			servermock.CheckRequestJSONBodyFromInternal("create_record-request.json"),
+			servermock.CheckQueryParameter().Strict().
+				With("teamId", "123"),
+		).
+		Route("/",
+			servermock.DumpRequest(),
+		).
+		Build(t)
+
+	err := provider.Present(t.Context(), "example.com", "abc", "123d==")
+	require.NoError(t, err)
+}
+
+func TestDNSProvider_CleanUp(t *testing.T) {
+	provider := mockBuilder().
+		Route("DELETE /v2/domains/example.com/records/1234567",
+			servermock.Noop(),
+			servermock.CheckQueryParameter().Strict().
+				With("teamId", "123"),
+		).
+		Build(t)
+
+	provider.recordIDs["abc"] = "1234567"
+
+	err := provider.CleanUp(t.Context(), "example.com", "abc", "123d==")
 	require.NoError(t, err)
 }

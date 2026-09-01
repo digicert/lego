@@ -3,6 +3,7 @@
 package scaleway
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
-	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/useragent"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 	scwdomain "github.com/scaleway/scaleway-sdk-go/api/domain/v2beta1"
 	"github.com/scaleway/scaleway-sdk-go/scw"
 )
@@ -51,7 +52,7 @@ var _ challenge.ProviderTimeout = (*DNSProvider)(nil)
 // Config is used to configure the creation of the DNSProvider.
 type Config struct {
 	ProjectID string
-	Token     string // TODO(ldez) rename to SecretKey in the next major.
+	SecretKey string
 	AccessKey string
 
 	PropagationTimeout time.Duration
@@ -89,7 +90,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 	}
 
 	config := NewDefaultConfig()
-	config.Token = values[EnvSecretKey]
+	config.SecretKey = values[EnvSecretKey]
 	config.AccessKey = env.GetOrDefaultString(EnvAccessKey, dumpAccessKey)
 	config.ProjectID = env.GetOrFile(EnvProjectID)
 
@@ -102,7 +103,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("scaleway: the configuration of the DNS provider is nil")
 	}
 
-	if config.Token == "" {
+	if config.SecretKey == "" {
 		return nil, errors.New("scaleway: credentials missing")
 	}
 
@@ -111,7 +112,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	configuration := []scw.ClientOption{
-		scw.WithAuth(config.AccessKey, config.Token),
+		scw.WithAuth(config.AccessKey, config.SecretKey),
 		scw.WithUserAgent(useragent.Get()),
 	}
 
@@ -139,15 +140,15 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 // Present creates a TXT record to fulfill DNS-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	records := []*scwdomain.Record{{
 		Data:    fmt.Sprintf(`%q`, info.Value),
 		Name:    info.EffectiveFQDN,
 		TTL:     uint32(d.config.TTL),
 		Type:    scwdomain.RecordTypeTXT,
-		Comment: scw.StringPtr("used by lego"),
+		Comment: new("used by lego"),
 	}}
 
 	req := &scwdomain.UpdateDNSZoneRecordsRequest{
@@ -155,11 +156,11 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Changes: []*scwdomain.RecordChange{{
 			Add: &scwdomain.RecordChangeAdd{Records: records},
 		}},
-		ReturnAllRecords:        scw.BoolPtr(false),
+		ReturnAllRecords:        new(false),
 		DisallowNewZoneCreation: true,
 	}
 
-	_, err := d.client.UpdateDNSZoneRecords(req)
+	_, err := d.client.UpdateDNSZoneRecords(req, scw.WithContext(ctx))
 	if err != nil {
 		return fmt.Errorf("scaleway: %w", err)
 	}
@@ -168,13 +169,13 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes a TXT record used for DNS-01 challenge.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	recordIdentifier := &scwdomain.RecordIdentifier{
 		Name: info.EffectiveFQDN,
 		Type: scwdomain.RecordTypeTXT,
-		Data: scw.StringPtr(fmt.Sprintf(`%q`, info.Value)),
+		Data: new(fmt.Sprintf(`%q`, info.Value)),
 	}
 
 	req := &scwdomain.UpdateDNSZoneRecordsRequest{
@@ -182,11 +183,11 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		Changes: []*scwdomain.RecordChange{{
 			Delete: &scwdomain.RecordChangeDelete{IDFields: recordIdentifier},
 		}},
-		ReturnAllRecords:        scw.BoolPtr(false),
+		ReturnAllRecords:        new(false),
 		DisallowNewZoneCreation: true,
 	}
 
-	_, err := d.client.UpdateDNSZoneRecords(req)
+	_, err := d.client.UpdateDNSZoneRecords(req, scw.WithContext(ctx))
 	if err != nil {
 		return fmt.Errorf("scaleway: %w", err)
 	}

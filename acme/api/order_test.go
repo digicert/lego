@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/digicert/lego/v4/acme"
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/acme"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -93,7 +93,7 @@ func TestOrderService_NewWithOptions(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			order, err := core.Orders.NewWithOptions([]string{"example.com"}, test.opts)
+			order, err := core.Orders.New(t.Context(), []string{"example.com"}, test.opts)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, order)

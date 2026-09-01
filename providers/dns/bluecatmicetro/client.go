@@ -3,6 +3,7 @@ package bluecatmicetro
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -91,10 +92,11 @@ func (c *Client) login() error {
 	}
 
 	if response.Result.Session == "" {
-		return fmt.Errorf("bluecatmicetro: empty session key returned")
+		return errors.New("bluecatmicetro: empty session key returned")
 	}
 
 	c.sessionKey = response.Result.Session
+
 	return nil
 }
 
@@ -135,6 +137,7 @@ type zoneListResponse struct {
 func (c *Client) listZones() ([]string, error) {
 	u, _ := url.Parse(c.baseURL)
 	u.Path = path.Join(u.Path, "v2", "dnsZones")
+
 	resp, err := c.doRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -171,7 +174,7 @@ func (c *Client) AddTXTRecord(zone, name, value string, ttl int) error {
 		fqdn = name + "." + zone + "."
 	}
 
-	rec := map[string]interface{}{
+	rec := map[string]any{
 		"name":    fqdn,
 		"type":    "TXT",
 		"data":    value,

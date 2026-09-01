@@ -28,7 +28,7 @@ Here is an example bash command using the ArtFiles provider:
 ```bash
 ARTFILES_USERNAME="xxx" \
 ARTFILES_PASSWORD="yyy" \
-lego --dns artfiles -d '*.example.com' -d example.com run
+lego run --dns artfiles -d '*.example.com' -d example.com
 ```
 
 
@@ -52,7 +52,7 @@ More information [here]({{% ref "dns#configuration-and-credentials" %}}).
 | `ARTFILES_HTTP_TIMEOUT` | API request timeout in seconds (Default: 30) |
 | `ARTFILES_POLLING_INTERVAL` | Time between DNS propagation check in seconds (Default: 2) |
 | `ARTFILES_PROPAGATION_TIMEOUT` | Maximum waiting time for DNS propagation in seconds (Default: 360) |
-| `ARTFILES_TTL` | The TTL of the TXT record used for the DNS challenge in seconds (Default: 120) |
+| `ARTFILES_SERVER_NAME` | Your server name (Default: dcp) |
 
 The environment variable names can be suffixed by `_FILE` to reference a file instead of a value.
 More information [here]({{% ref "dns#configuration-and-credentials" %}}).

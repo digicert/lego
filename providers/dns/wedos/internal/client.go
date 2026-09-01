@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 const baseURL = "https://api.wedos.com/wapi/json"

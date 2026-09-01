@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +22,8 @@ func mockBuilder(teamID string) *servermock.Builder[*Client] {
 			return client, nil
 		},
 		servermock.CheckHeader().WithJSONHeaders().
-			WithAuthorization("Bearer "+apiKey))
+			WithAuthorization("Bearer "+apiKey),
+	)
 }
 
 func TestClient_GetRecords(t *testing.T) {

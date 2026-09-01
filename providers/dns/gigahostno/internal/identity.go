@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
-	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
+	"github.com/digicert/lego/v5/internal/errutils"
+	"github.com/digicert/lego/v5/internal/useragent"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -106,6 +106,21 @@ func (c *Identifier) do(req *http.Request, result any) error {
 	}
 
 	return nil
+}
+
+type StaticIdentifier struct {
+	apiKey string
+}
+
+func NewStaticIdentifier(apiKey string) *StaticIdentifier {
+	return &StaticIdentifier{apiKey: apiKey}
+}
+
+func (c *StaticIdentifier) Authenticate(_ context.Context) (*Token, error) {
+	return &Token{
+		Token:       c.apiKey,
+		TokenExpire: time.Date(time.Now().Year()+42, 1, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	}, nil
 }
 
 func WithContext(ctx context.Context, credential string) context.Context {

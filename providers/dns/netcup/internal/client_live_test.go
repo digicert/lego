@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/tester"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/tester"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,15 +29,16 @@ func TestClient_GetDNSRecords_Live(t *testing.T) {
 	client, err := NewClient(
 		envTest.GetValue("NETCUP_CUSTOMER_NUMBER"),
 		envTest.GetValue("NETCUP_API_KEY"),
-		envTest.GetValue("NETCUP_API_PASSWORD"))
+		envTest.GetValue("NETCUP_API_PASSWORD"),
+	)
 	require.NoError(t, err)
 
 	ctx, err := client.CreateSessionContext(t.Context())
 	require.NoError(t, err)
 
-	info := dns01.GetChallengeInfo(envTest.GetDomain(), "123d==")
+	info := dns01.GetChallengeInfo(ctx, envTest.GetDomain(), "123d==")
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	require.NoError(t, err)
 
 	zone = dns01.UnFqdn(zone)
@@ -62,15 +63,16 @@ func TestClient_UpdateDNSRecord_Live(t *testing.T) {
 	client, err := NewClient(
 		envTest.GetValue("NETCUP_CUSTOMER_NUMBER"),
 		envTest.GetValue("NETCUP_API_KEY"),
-		envTest.GetValue("NETCUP_API_PASSWORD"))
+		envTest.GetValue("NETCUP_API_PASSWORD"),
+	)
 	require.NoError(t, err)
 
 	ctx, err := client.CreateSessionContext(t.Context())
 	require.NoError(t, err)
 
-	info := dns01.GetChallengeInfo(envTest.GetDomain(), "123d==")
+	info := dns01.GetChallengeInfo(ctx, envTest.GetDomain(), "123d==")
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, info.EffectiveFQDN)
 	require.NotErrorIs(t, err, fmt.Errorf("error finding DNSZone, %w", err))
 
 	hostname := strings.Replace(info.EffectiveFQDN, "."+zone, "", 1)
@@ -120,7 +122,8 @@ func TestLiveClientAuth(t *testing.T) {
 	client, err := NewClient(
 		envTest.GetValue("NETCUP_CUSTOMER_NUMBER"),
 		envTest.GetValue("NETCUP_API_KEY"),
-		envTest.GetValue("NETCUP_API_PASSWORD"))
+		envTest.GetValue("NETCUP_API_PASSWORD"),
+	)
 	require.NoError(t, err)
 
 	for i := range 4 {

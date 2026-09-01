@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester"
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/nrdcg/auroradns"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,8 @@ func mockBuilder() *servermock.Builder[*DNSProvider] {
 		servermock.CheckHeader().
 			WithContentType("application/json").
 			WithRegexp("Authorization", `AuroraDNSv1 .+`).
-			WithRegexp("X-Auroradns-Date", `[0-9TZ]+`))
+			WithRegexp("X-Auroradns-Date", `[0-9TZ]+`),
+	)
 }
 
 func TestNewDNSProvider(t *testing.T) {
@@ -160,7 +161,7 @@ func TestDNSProvider_Present(t *testing.T) {
 				WithStatusCode(http.StatusCreated)).
 		Build(t)
 
-	err := provider.Present("example.com", "", "foobar")
+	err := provider.Present(t.Context(), "example.com", "", "foobar")
 	require.NoError(t, err)
 }
 
@@ -185,9 +186,9 @@ func TestDNSProvider_CleanUp(t *testing.T) {
 				WithStatusCode(http.StatusCreated)).
 		Build(t)
 
-	err := provider.Present("example.com", "", "foobar")
+	err := provider.Present(t.Context(), "example.com", "", "foobar")
 	require.NoError(t, err)
 
-	err = provider.CleanUp("example.com", "", "foobar")
+	err = provider.CleanUp(t.Context(), "example.com", "", "foobar")
 	require.NoError(t, err)
 }

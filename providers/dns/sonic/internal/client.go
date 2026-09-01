@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 const baseURL = "https://public-api.sonic.net/dyndns"
@@ -21,7 +21,7 @@ type Client struct {
 	userID string
 	apiKey string
 
-	baseURL    string
+	BaseURL    string
 	HTTPClient *http.Client
 }
 
@@ -34,7 +34,7 @@ func NewClient(userID, apiKey string) (*Client, error) {
 	return &Client{
 		userID:     userID,
 		apiKey:     apiKey,
-		baseURL:    baseURL,
+		BaseURL:    baseURL,
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 	}, nil
 }
@@ -57,7 +57,7 @@ func (c *Client) SetRecord(ctx context.Context, hostname, value string, ttl int)
 		return fmt.Errorf("failed to create request JSON body: %w", err)
 	}
 
-	endpoint, err := url.JoinPath(c.baseURL, "host")
+	endpoint, err := url.JoinPath(c.BaseURL, "host")
 	if err != nil {
 		return err
 	}

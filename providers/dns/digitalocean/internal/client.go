@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/errutils"
 	"golang.org/x/oauth2"
 )
 
@@ -28,7 +28,7 @@ type Client struct {
 // ListRecordsResponse represents a response for listing domain records.
 type ListRecordsResponse struct {
 	DomainRecords []Record `json:"domain_records"`
-	Links         struct{} `json:"links,omitempty"`
+	Links         struct{} `json:"links"`
 	Meta          struct {
 		Total int `json:"total"`
 	} `json:"meta"`
@@ -84,6 +84,7 @@ func (c *Client) ListRecords(ctx context.Context, zone string) ([]Record, error)
 	}
 
 	response := &ListRecordsResponse{}
+
 	err = c.do(req, response)
 	if err != nil {
 		return nil, err

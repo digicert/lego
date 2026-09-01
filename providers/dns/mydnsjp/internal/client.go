@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digicert/lego/v4/providers/dns/internal/errutils"
+	"github.com/digicert/lego/v5/internal/errutils"
 )
 
 const defaultBaseURL = "https://www.mydns.jp/directedit.html"

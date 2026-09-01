@@ -4,7 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +47,7 @@ var testCases = []testCase{
 func TestDNSProvider_Present(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			ch, _ := newPseudoRecord(test.domain, "")
+			ch, _ := newPseudoRecord(t.Context(), test.domain, "")
 
 			provider := mockBuilder().
 				Route("GET /",
@@ -74,7 +74,7 @@ func TestDNSProvider_Present(t *testing.T) {
 				).
 				Build(t)
 
-			err := provider.Present(test.domain, "", "dummyKey")
+			err := provider.Present(t.Context(), test.domain, "", "dummyKey")
 			if test.errString != "" {
 				assert.EqualError(t, err, "namecheap: "+test.errString)
 			} else {
@@ -87,7 +87,7 @@ func TestDNSProvider_Present(t *testing.T) {
 func TestDNSProvider_CleanUp(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			ch, _ := newPseudoRecord(test.domain, "")
+			ch, _ := newPseudoRecord(t.Context(), test.domain, "")
 
 			provider := mockBuilder().
 				Route("GET /",
@@ -114,7 +114,7 @@ func TestDNSProvider_CleanUp(t *testing.T) {
 				).
 				Build(t)
 
-			err := provider.CleanUp(test.domain, "", "dummyKey")
+			err := provider.CleanUp(t.Context(), test.domain, "", "dummyKey")
 			if test.errString != "" {
 				assert.EqualError(t, err, "namecheap: "+test.errString)
 			} else {
@@ -126,19 +126,100 @@ func TestDNSProvider_CleanUp(t *testing.T) {
 
 func Test_newPseudoRecord_domainSplit(t *testing.T) {
 	tests := []struct {
-		domain string
-		valid  bool
-		tld    string
-		sld    string
-		host   string
+		domain   string
+		valid    bool
+		expected *pseudoRecord
 	}{
-		{domain: "a.b.c.test.co.uk", valid: true, tld: "co.uk", sld: "test", host: "a.b.c"},
-		{domain: "test.co.uk", valid: true, tld: "co.uk", sld: "test"},
-		{domain: "test.com", valid: true, tld: "com", sld: "test"},
-		{domain: "test.co.com", valid: true, tld: "co.com", sld: "test"},
-		{domain: "www.test.com.au", valid: true, tld: "com.au", sld: "test", host: "www"},
-		{domain: "www.za.com", valid: true, tld: "za.com", sld: "www"},
-		{domain: "my.test.tf", valid: true, tld: "tf", sld: "test", host: "my"},
+		{
+			domain: "a.b.c.test.co.uk",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "a.b.c.test.co.uk",
+				key:      "_acme-challenge.a.b.c",
+				keyFqdn:  "_acme-challenge.a.b.c.test.co.uk.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "co.uk",
+				sld:      "test",
+				host:     "a.b.c",
+			},
+		},
+		{
+			domain: "test.co.uk",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "test.co.uk",
+				key:      "_acme-challenge",
+				keyFqdn:  "_acme-challenge.test.co.uk.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "co.uk",
+				sld:      "test",
+				host:     "",
+			},
+		},
+		{
+			domain: "test.com",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "test.com",
+				key:      "_acme-challenge",
+				keyFqdn:  "_acme-challenge.test.com.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "com",
+				sld:      "test",
+				host:     "",
+			},
+		},
+		{
+			domain: "test.co.com",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "test.co.com",
+				key:      "_acme-challenge",
+				keyFqdn:  "_acme-challenge.test.co.com.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "co.com",
+				sld:      "test",
+				host:     "",
+			},
+		},
+		{
+			domain: "www.test.com.au",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "www.test.com.au",
+				key:      "_acme-challenge.www",
+				keyFqdn:  "_acme-challenge.www.test.com.au.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "com.au",
+				sld:      "test",
+				host:     "www",
+			},
+		},
+		{
+			domain: "www.za.com",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "www.za.com",
+				key:      "_acme-challenge",
+				keyFqdn:  "_acme-challenge.www.za.com.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "za.com",
+				sld:      "www",
+			},
+		},
+		{
+			domain: "my.test.tf",
+			valid:  true,
+			expected: &pseudoRecord{
+				domain:   "my.test.tf",
+				key:      "_acme-challenge.my",
+				keyFqdn:  "_acme-challenge.my.test.tf.",
+				keyValue: "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU",
+				tld:      "tf",
+				sld:      "test",
+				host:     "my",
+			},
+		},
 		{},
 		{domain: "a"},
 		{domain: "com"},
@@ -153,7 +234,7 @@ func Test_newPseudoRecord_domainSplit(t *testing.T) {
 		t.Run(test.domain, func(t *testing.T) {
 			valid := true
 
-			ch, err := newPseudoRecord(test.domain, "")
+			pr, err := newPseudoRecord(t.Context(), test.domain, "")
 			if err != nil {
 				valid = false
 			}
@@ -165,11 +246,9 @@ func Test_newPseudoRecord_domainSplit(t *testing.T) {
 			}
 
 			if test.valid && valid {
-				require.NotNil(t, ch)
-				assert.Equal(t, test.domain, ch.domain, "domain")
-				assert.Equal(t, test.tld, ch.tld, "tld")
-				assert.Equal(t, test.sld, ch.sld, "sld")
-				assert.Equal(t, test.host, ch.host, "host")
+				require.NotNil(t, pr)
+
+				assert.Equal(t, test.expected, pr)
 			}
 		})
 	}

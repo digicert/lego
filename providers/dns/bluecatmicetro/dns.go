@@ -1,11 +1,12 @@
 package bluecatmicetro
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/platform/env"
 )
 
 const (
@@ -48,6 +49,7 @@ func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 	if cfg.Endpoint == "" {
 		return nil, fmt.Errorf("bluecatmicetro: %s must be set", envEndpoint)
 	}
+
 	if cfg.Username == "" || cfg.Password == "" {
 		return nil, fmt.Errorf("bluecatmicetro: provide %s/%s", envUsername, envPassword)
 	}
@@ -60,8 +62,8 @@ func NewDNSProviderConfig(cfg *Config) (*DNSProvider, error) {
 	}, nil
 }
 
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {
@@ -71,8 +73,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	return d.client.AddTXTRecord(zoneName, relative, info.Value, d.cfg.TTL)
 }
 
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zoneName, relative := FindBestZoneForFQDN(d.client, info.EffectiveFQDN)
 	if zoneName == "" {

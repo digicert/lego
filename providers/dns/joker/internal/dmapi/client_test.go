@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +34,8 @@ func mockBuilder(auth AuthInfo) *servermock.Builder[*Client] {
 			return client, nil
 		},
 		servermock.CheckHeader().
-			WithContentTypeFromURLEncoded())
+			WithContentTypeFromURLEncoded(),
+	)
 }
 
 func TestClient_GetZone(t *testing.T) {
@@ -199,7 +200,7 @@ func Test_RemoveTxtEntryFromZone(t *testing.T) {
 			modified: false,
 		},
 		{
-			desc:     "zone with only clenup entry",
+			desc:     "zone with only cleanup entry",
 			input:    "_acme-challenge TXT 0  \"old \" 120",
 			expected: "",
 			modified: true,

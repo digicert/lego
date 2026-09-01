@@ -9,12 +9,12 @@ import (
 	"slices"
 	"time"
 
-	"github.com/digicert/lego/v4/challenge"
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/platform/config/env"
-	"github.com/digicert/lego/v4/providers/dns/internal/clientdebug"
-	"github.com/digicert/lego/v4/providers/dns/internal/ptr"
-	"github.com/digicert/lego/v4/providers/dns/internal/useragent"
+	"github.com/digicert/lego/v5/challenge"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/ptr"
+	"github.com/digicert/lego/v5/internal/useragent"
+	"github.com/digicert/lego/v5/platform/env"
+	"github.com/digicert/lego/v5/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/bunny-go"
 	"golang.org/x/net/publicsuffix"
 )
@@ -113,10 +113,8 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
-func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
-
-	ctx := context.Background()
+func (d *DNSProvider) Present(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zone, err := d.findZone(ctx, dns01.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
@@ -129,10 +127,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	record := &bunny.AddOrUpdateDNSRecordOptions{
-		Type:  ptr.Pointer(bunny.DNSRecordTypeTXT),
-		Name:  ptr.Pointer(subDomain),
-		Value: ptr.Pointer(info.Value),
-		TTL:   ptr.Pointer(int32(d.config.TTL)),
+		Type:  new(bunny.DNSRecordTypeTXT),
+		Name:  new(subDomain),
+		Value: new(info.Value),
+		TTL:   new(int32(d.config.TTL)),
 	}
 
 	if _, err := d.client.DNSZone.AddDNSRecord(ctx, ptr.Deref(zone.ID), record); err != nil {
@@ -143,10 +141,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	info := dns01.GetChallengeInfo(domain, keyAuth)
-
-	ctx := context.Background()
+func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string) error {
+	info := dns01.GetChallengeInfo(ctx, domain, keyAuth)
 
 	zone, err := d.findZone(ctx, dns01.UnFqdn(info.EffectiveFQDN))
 	if err != nil {

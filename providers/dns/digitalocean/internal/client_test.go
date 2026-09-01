@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/digicert/lego/v4/platform/tester/servermock"
+	"github.com/digicert/lego/v5/internal/tester/servermock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,8 @@ func mockBuilder() *servermock.Builder[*Client] {
 			return client, nil
 		},
 		servermock.CheckHeader().WithJSONHeaders().
-			WithAuthorization("Bearer secret"))
+			WithAuthorization("Bearer secret"),
+	)
 }
 
 func TestClient_AddTxtRecord(t *testing.T) {

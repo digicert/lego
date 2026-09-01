@@ -10,18 +10,18 @@ BLUECATV2_USERNAME="xxx" \
 BLUECATV2_PASSWORD="yyy" \
 BLUECATV2_CONFIG_NAME="myConfiguration" \
 BLUECATV2_VIEW_NAME="myView" \
-lego --dns bluecatv2 -d '*.example.com' -d example.com run
+lego run --dns bluecatv2 -d '*.example.com' -d example.com
 '''
 
 [Configuration]
   [Configuration.Credentials]
-    BLUECAT_SERVER_URL = "The server URL: it should have a scheme, hostname, and port (if required) of the authoritative Bluecat BAM serve"
+    BLUECATV2_SERVER_URL = "The server URL: it should have a scheme, hostname, and port (if required) of the authoritative Bluecat BAM serve"
     BLUECATV2_USERNAME = "API username"
     BLUECATV2_PASSWORD = "API password"
     BLUECATV2_CONFIG_NAME = "Configuration name"
     BLUECATV2_VIEW_NAME = "DNS View Name"
   [Configuration.Additional]
-    BLUECATV2_SKIP_DEPLOY = "Skip quick deployements"
+    BLUECATV2_SKIP_DEPLOY = "Skip quick deployments"
     BLUECATV2_POLLING_INTERVAL = "Time between DNS propagation check in seconds (Default: 2)"
     BLUECATV2_PROPAGATION_TIMEOUT = "Maximum waiting time for DNS propagation in seconds (Default: 60)"
     BLUECATV2_TTL = "The TTL of the TXT record used for the DNS challenge in seconds (Default: 120)"

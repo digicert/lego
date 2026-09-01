@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/digicert/lego/v4/challenge/dns01"
-	"github.com/digicert/lego/v4/providers/dns/internal/ptr"
+	"github.com/digicert/lego/v5/challenge/dns01"
+	"github.com/digicert/lego/v5/internal/ptr"
 	teo "github.com/go-acme/tencentedgdeone/v20220901"
 )
 
 func (d *DNSProvider) getHostedZoneID(ctx context.Context, domain string) (*string, error) {
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dns01.DefaultClient().FindZoneByFqdn(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
@@ -18,7 +18,7 @@ func (d *DNSProvider) getHostedZoneID(ctx context.Context, domain string) (*stri
 	if d.config.ZonesMapping != nil {
 		zoneID, ok := d.config.ZonesMapping[authZone]
 		if ok {
-			return ptr.Pointer(zoneID), nil
+			return new(zoneID), nil
 		}
 	}
 
@@ -38,7 +38,7 @@ func (d *DNSProvider) getHostedZoneID(ctx context.Context, domain string) (*stri
 			break
 		}
 
-		request.Offset = ptr.Pointer(int64(len(zones)))
+		request.Offset = new(int64(len(zones)))
 	}
 
 	var hostedZone *teo.Zone
