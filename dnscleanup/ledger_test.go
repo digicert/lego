@@ -114,7 +114,7 @@ func TestSweepCleansSupersededScopeImmediately(t *testing.T) {
 
 	fake := &fakeCleaner{}
 
-	res, err := l.Sweep(context.Background(), fake, scope)
+	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "third"})
 	require.NoError(t, err)
 	require.Len(t, fake.calls, 2)
 
@@ -122,6 +122,30 @@ func TestSweepCleansSupersededScopeImmediately(t *testing.T) {
 	assert.Len(t, res.Cleaned, 2)
 	assert.Zero(t, res.Skipped)
 	assert.Empty(t, readFile(t, l).Records)
+}
+
+func TestSweepPreservesValueBeingRepresented(t *testing.T) {
+	l := newLedger(t, WithTTL(30*time.Minute))
+	scope := "_acme-challenge.retry.example.com."
+
+	require.NoError(t, l.Add(context.Background(),
+		Record{Domain: "retry.example.com", Value: "stale", Scope: scope},
+		Record{Domain: "retry.example.com", Value: "current", Scope: scope},
+	))
+
+	fake := &fakeCleaner{}
+
+	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "current"})
+	require.NoError(t, err)
+	require.Len(t, fake.calls, 1)
+
+	assert.Equal(t, "stale", fake.calls[0].value)
+	assert.Equal(t, 1, res.Skipped)
+
+	records := readFile(t, l).Records
+	require.Len(t, records, 1)
+
+	assert.Equal(t, "current", records[0].Value)
 }
 
 func TestSweepKeepsUnrelatedScopeProtectedWhileSuperseding(t *testing.T) {
@@ -135,7 +159,7 @@ func TestSweepKeepsUnrelatedScopeProtectedWhileSuperseding(t *testing.T) {
 
 	fake := &fakeCleaner{}
 
-	res, err := l.Sweep(context.Background(), fake, superseded)
+	res, err := l.Sweep(context.Background(), fake, Intent{Scope: superseded, Value: "replacement"})
 	require.NoError(t, err)
 	require.Len(t, fake.calls, 1)
 

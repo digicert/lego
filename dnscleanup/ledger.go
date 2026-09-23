@@ -209,16 +209,30 @@ type SweepResult struct {
 	Skipped int
 }
 
+// Intent is a TXT record this run is about to present. Its scope is treated as
+// superseded, so stale values there are removed immediately instead of waiting
+// out the TTL, while its own Value is preserved. A record being re-presented is
+// therefore never deleted, which is what makes skipping a redundant Present safe.
+type Intent struct {
+	Scope string
+	Value string
+}
+
+type sweepPlan struct {
+	replaced  map[string]struct{}
+	keep      map[string]struct{}
+	protected map[string]struct{}
+}
+
 // Sweep removes ledger records whose TTL has elapsed. A record is retained
 // while another record sharing its cleanup scope is still fresh, since
 // providers that delete a whole TXT rrset would destroy a challenge still
 // being validated.
 //
-// supersededScopes lifts that protection for scopes about to be presented
-// again, cleaning their records immediately rather than waiting out the TTL.
-// These scopes MUST be passed before Present, while the rrset still holds only
-// superseded values; passing them afterwards deletes the live challenge.
-func (l *Ledger) Sweep(ctx context.Context, c Cleaner, supersededScopes ...string) (SweepResult, error) {
+// Passing this run's intents lifts that protection for the scopes it is about
+// to present. Intents MUST be passed before Present, while the rrset still
+// holds only superseded values; passing them afterwards deletes live records.
+func (l *Ledger) Sweep(ctx context.Context, c Cleaner, intents ...Intent) (SweepResult, error) {
 	var res SweepResult
 
 	if c == nil {
@@ -240,11 +254,11 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner, supersededScopes ...strin
 	now := time.Now().UTC()
 
 	pending := append([]Record(nil), f.Records...)
-	superseded, protected := l.classifyScopes(pending, now, supersededScopes)
+	plan := l.planSweep(pending, now, intents)
 	kept := make([]Record, 0, len(pending))
 
 	for i, r := range pending {
-		if l.retain(r, now, superseded, protected) {
+		if l.retain(r, now, plan) {
 			res.Skipped++
 
 			kept = append(kept, r)
@@ -288,40 +302,53 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner, supersededScopes ...strin
 	return res, l.save(f)
 }
 
-func (l *Ledger) classifyScopes(pending []Record, now time.Time, supersededScopes []string) (replaced, protected map[string]struct{}) {
-	replaced = make(map[string]struct{}, len(supersededScopes))
-
-	for _, scope := range supersededScopes {
-		if scope = strings.TrimSpace(scope); scope != "" {
-			replaced[scope] = struct{}{}
-		}
+func (l *Ledger) planSweep(pending []Record, now time.Time, intents []Intent) sweepPlan {
+	plan := sweepPlan{
+		replaced:  make(map[string]struct{}, len(intents)),
+		keep:      make(map[string]struct{}, len(intents)),
+		protected: make(map[string]struct{}),
 	}
 
-	protected = make(map[string]struct{})
+	for _, intent := range intents {
+		scope := strings.TrimSpace(intent.Scope)
+		if scope == "" {
+			continue
+		}
+
+		plan.replaced[scope] = struct{}{}
+
+		if intent.Value != "" {
+			plan.keep[key(scope, intent.Value)] = struct{}{}
+		}
+	}
 
 	for _, r := range pending {
 		scope := r.cleanupScope()
 
-		if _, ok := replaced[scope]; ok {
+		if _, ok := plan.replaced[scope]; ok {
 			continue
 		}
 
 		if !r.due(now, l.ttl) {
-			protected[scope] = struct{}{}
+			plan.protected[scope] = struct{}{}
 		}
 	}
 
-	return replaced, protected
+	return plan
 }
 
-func (l *Ledger) retain(r Record, now time.Time, replaced, protected map[string]struct{}) bool {
+func (l *Ledger) retain(r Record, now time.Time, plan sweepPlan) bool {
 	scope := r.cleanupScope()
 
-	if _, ok := replaced[scope]; ok {
+	if _, ok := plan.keep[key(scope, r.Value)]; ok {
+		return true
+	}
+
+	if _, ok := plan.replaced[scope]; ok {
 		return false
 	}
 
-	_, isProtected := protected[scope]
+	_, isProtected := plan.protected[scope]
 
 	return !r.due(now, l.ttl) || isProtected
 }
