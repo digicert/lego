@@ -1,5 +1,7 @@
 // Package dnscleanup implements a durable, cross-process ledger of DNS-01 TXT
 // records that still need to be removed from a DNS provider.
+//
+//nolint:wsl // Ledger operations intentionally separate lock, persistence, and provider-I/O phases.
 package dnscleanup
 
 import (
@@ -203,7 +205,7 @@ type SweepResult struct {
 	Skipped int
 }
 
-func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) {
+func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //nolint:gocyclo
 	var res SweepResult
 
 	if c == nil {
@@ -303,7 +305,7 @@ func (l *Ledger) load() (*ledgerFile, error) {
 		return nil, fmt.Errorf("dnscleanup: read %q: %w", l.path, err)
 	}
 
-	if len(strings.TrimSpace(string(data))) == 0 {
+	if strings.TrimSpace(string(data)) == "" {
 		return &ledgerFile{Provider: l.provider}, nil
 	}
 

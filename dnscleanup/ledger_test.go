@@ -1,3 +1,4 @@
+//nolint:wsl,modernize // Explicit goroutine lifecycle keeps cross-process lock assertions readable.
 package dnscleanup
 
 import (
