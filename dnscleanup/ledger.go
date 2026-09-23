@@ -98,7 +98,7 @@ func WithCleanupTimeout(timeout time.Duration) Option {
 	}
 }
 
-func New(dir, provider string, opts ...Option) (*Ledger, error) { //nolint:wsl_v5,nolintlint
+func New(dir, provider string, opts ...Option) (*Ledger, error) {
 	name := sanitize(provider)
 	if name == "" {
 		return nil, errors.New("dnscleanup: provider name must not be empty")
@@ -142,7 +142,7 @@ func (l *Ledger) RefreshInterval() time.Duration {
 	return interval
 }
 
-func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:wsl_v5,nolintlint
+func (l *Ledger) Add(ctx context.Context, records ...Record) error {
 	if len(records) == 0 {
 		return nil
 	}
@@ -151,6 +151,7 @@ func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:ws
 	if err != nil {
 		return err
 	}
+
 	defer unlock()
 
 	f, err := l.load()
@@ -159,7 +160,9 @@ func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:ws
 	}
 
 	now := time.Now().UTC()
+
 	existing := make(map[string]int, len(f.Records))
+
 	for i, r := range f.Records {
 		existing[key(r.Domain, r.Value)] = i
 	}
@@ -172,9 +175,11 @@ func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:ws
 		if i, ok := existing[key(r.Domain, r.Value)]; ok {
 			f.Records[i].CreatedAt = now
 			f.Records[i].ExpiresAt = now.Add(l.ttl)
+
 			if r.Scope != "" {
 				f.Records[i].Scope = r.Scope
 			}
+
 			f.Records[i].Attempts = 0
 			f.Records[i].LastError = ""
 			f.Records[i].LastAttemptAt = nil
@@ -185,6 +190,7 @@ func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:ws
 		if r.CreatedAt.IsZero() {
 			r.CreatedAt = now
 		}
+
 		if r.ExpiresAt.IsZero() {
 			r.ExpiresAt = r.CreatedAt.Add(l.ttl)
 		}
@@ -203,7 +209,30 @@ type SweepResult struct {
 	Skipped int
 }
 
-func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //nolint:gocyclo,wsl_v5,nolintlint
+// Intent is a TXT record this run is about to present. Its scope is treated as
+// superseded, so stale values there are removed immediately instead of waiting
+// out the TTL, while its own Value is preserved. A record being re-presented is
+// therefore never deleted, which is what makes skipping a redundant Present safe.
+type Intent struct {
+	Scope string
+	Value string
+}
+
+type sweepPlan struct {
+	replaced  map[string]struct{}
+	keep      map[string]struct{}
+	protected map[string]struct{}
+}
+
+// Sweep removes ledger records whose TTL has elapsed. A record is retained
+// while another record sharing its cleanup scope is still fresh, since
+// providers that delete a whole TXT rrset would destroy a challenge still
+// being validated.
+//
+// Passing this run's intents lifts that protection for the scopes it is about
+// to present. Intents MUST be passed before Present, while the rrset still
+// holds only superseded values; passing them afterwards deletes live records.
+func (l *Ledger) Sweep(ctx context.Context, c Cleaner, intents ...Intent) (SweepResult, error) {
 	var res SweepResult
 
 	if c == nil {
@@ -214,6 +243,7 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 	if err != nil {
 		return res, err
 	}
+
 	defer unlock()
 
 	f, err := l.load()
@@ -222,19 +252,15 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 	}
 
 	now := time.Now().UTC()
-	kept := make([]Record, 0, len(f.Records))
+
 	pending := append([]Record(nil), f.Records...)
-	protectedScopes := make(map[string]struct{})
-	for _, r := range pending {
-		if !r.due(now, l.ttl) {
-			protectedScopes[r.cleanupScope()] = struct{}{}
-		}
-	}
+	plan := l.planSweep(pending, now, intents)
+	kept := make([]Record, 0, len(pending))
 
 	for i, r := range pending {
-		_, protected := protectedScopes[r.cleanupScope()]
-		if !r.due(now, l.ttl) || protected {
+		if l.retain(r, now, plan) {
 			res.Skipped++
+
 			kept = append(kept, r)
 
 			continue
@@ -242,10 +268,13 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 
 		cleanupCtx, cancel := context.WithTimeout(ctx, l.cleanupTimeout)
 		cleanErr := c.CleanUp(cleanupCtx, r.Domain, "", r.Value)
+
 		cancel()
+
 		if cleanErr == nil {
 			res.Cleaned = append(res.Cleaned, r)
 			f.Records = append(append([]Record(nil), kept...), pending[i+1:]...)
+
 			if err := l.save(f); err != nil {
 				return res, err
 			}
@@ -273,7 +302,58 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 	return res, l.save(f)
 }
 
-func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl_v5,nolintlint
+func (l *Ledger) planSweep(pending []Record, now time.Time, intents []Intent) sweepPlan {
+	plan := sweepPlan{
+		replaced:  make(map[string]struct{}, len(intents)),
+		keep:      make(map[string]struct{}, len(intents)),
+		protected: make(map[string]struct{}),
+	}
+
+	for _, intent := range intents {
+		scope := strings.TrimSpace(intent.Scope)
+		if scope == "" {
+			continue
+		}
+
+		plan.replaced[scope] = struct{}{}
+
+		if intent.Value != "" {
+			plan.keep[key(scope, intent.Value)] = struct{}{}
+		}
+	}
+
+	for _, r := range pending {
+		scope := r.cleanupScope()
+
+		if _, ok := plan.replaced[scope]; ok {
+			continue
+		}
+
+		if !r.due(now, l.ttl) {
+			plan.protected[scope] = struct{}{}
+		}
+	}
+
+	return plan
+}
+
+func (l *Ledger) retain(r Record, now time.Time, plan sweepPlan) bool {
+	scope := r.cleanupScope()
+
+	if _, ok := plan.keep[key(scope, r.Value)]; ok {
+		return true
+	}
+
+	if _, ok := plan.replaced[scope]; ok {
+		return false
+	}
+
+	_, isProtected := plan.protected[scope]
+
+	return !r.due(now, l.ttl) || isProtected
+}
+
+func (l *Ledger) lock(ctx context.Context) (func(), error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -282,10 +362,12 @@ func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl_v5,nol
 	defer cancel()
 
 	fl := flock.New(l.lockPath)
+
 	ok, err := fl.TryLockContext(lockCtx, lockRetryDelay)
 	if err != nil {
 		return nil, fmt.Errorf("dnscleanup: lock %q: %w", l.lockPath, err)
 	}
+
 	if !ok {
 		return nil, fmt.Errorf("dnscleanup: timed out after %s waiting for lock %q", l.lockTimeout, l.lockPath)
 	}
@@ -293,7 +375,7 @@ func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl_v5,nol
 	return func() { _ = fl.Unlock() }, nil
 }
 
-func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl_v5,nolintlint
+func (l *Ledger) load() (*ledgerFile, error) {
 	data, err := os.ReadFile(l.path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -308,9 +390,11 @@ func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl_v5,nolintlint
 	}
 
 	var f ledgerFile
+
 	if err := json.Unmarshal(data, &f); err != nil {
 		return nil, fmt.Errorf("dnscleanup: parse %q (left intact for inspection): %w", l.path, err)
 	}
+
 	if f.Provider == "" {
 		f.Provider = l.provider
 	}
@@ -318,7 +402,7 @@ func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl_v5,nolintlint
 	return &f, nil
 }
 
-func (l *Ledger) save(f *ledgerFile) error { //nolint:wsl_v5,nolintlint
+func (l *Ledger) save(f *ledgerFile) error {
 	if f.Records == nil {
 		f.Records = []Record{}
 	}
@@ -327,13 +411,16 @@ func (l *Ledger) save(f *ledgerFile) error { //nolint:wsl_v5,nolintlint
 	if err != nil {
 		return fmt.Errorf("dnscleanup: encode ledger: %w", err)
 	}
+
 	data = append(data, '\n')
 
 	tmp, err := os.CreateTemp(filepath.Dir(l.path), filepath.Base(l.path)+".tmp-*")
 	if err != nil {
 		return fmt.Errorf("dnscleanup: create temp file: %w", err)
 	}
+
 	tmpName := tmp.Name()
+
 	defer func() { _ = os.Remove(tmpName) }()
 
 	if _, err := tmp.Write(data); err != nil {
@@ -341,9 +428,11 @@ func (l *Ledger) save(f *ledgerFile) error { //nolint:wsl_v5,nolintlint
 
 		return fmt.Errorf("dnscleanup: write temp file: %w", err)
 	}
+
 	if err := tmp.Close(); err != nil {
 		return fmt.Errorf("dnscleanup: close temp file: %w", err)
 	}
+
 	if err := os.Rename(tmpName, l.path); err != nil {
 		return fmt.Errorf("dnscleanup: replace %q: %w", l.path, err)
 	}
@@ -369,9 +458,11 @@ func key(domain, value string) string {
 	return domain + "\x00" + value
 }
 
-func sanitize(provider string) string { //nolint:wsl_v5,nolintlint
+func sanitize(provider string) string {
 	provider = strings.TrimSpace(provider)
+
 	var b strings.Builder
+
 	for _, r := range provider {
 		switch {
 		case r >= 'a' && r <= 'z',
