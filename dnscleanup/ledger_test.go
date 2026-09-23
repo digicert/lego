@@ -103,7 +103,7 @@ func TestSweepProtectsFreshCleanupScope(t *testing.T) {
 	assert.Equal(t, 2, res.Skipped)
 }
 
-func TestSweepCleansSupersededScopeImmediately(t *testing.T) {
+func TestSweepKeepsOtherValuesWhenScopeIsRepresented(t *testing.T) {
 	l := newLedger(t, WithTTL(30*time.Minute))
 	scope := "_acme-challenge.finaldnsmadeeasy.example.us."
 
@@ -116,30 +116,26 @@ func TestSweepCleansSupersededScopeImmediately(t *testing.T) {
 
 	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "third"})
 	require.NoError(t, err)
-	require.Len(t, fake.calls, 2)
 
-	assert.Equal(t, []string{"first", "second"}, []string{fake.calls[0].value, fake.calls[1].value})
-	assert.Len(t, res.Cleaned, 2)
-	assert.Zero(t, res.Skipped)
-	assert.Empty(t, readFile(t, l).Records)
+	assert.Empty(t, fake.calls)
+	assert.Equal(t, 2, res.Skipped)
+	assert.Len(t, readFile(t, l).Records, 2)
 }
 
-func TestSweepPreservesValueBeingRepresented(t *testing.T) {
-	l := newLedger(t, WithTTL(30*time.Minute))
+func TestSweepKeepsExpiredValueBeingRepresented(t *testing.T) {
+	l := newLedger(t, WithTTL(time.Nanosecond))
 	scope := "_acme-challenge.retry.example.com."
 
 	require.NoError(t, l.Add(context.Background(),
-		Record{Domain: "retry.example.com", Value: "stale", Scope: scope},
-		Record{Domain: "retry.example.com", Value: "current", Scope: scope},
+		Record{Domain: "retry.example.com", Value: "current", Scope: scope, CreatedAt: time.Now().UTC().Add(-time.Hour)},
 	))
 
 	fake := &fakeCleaner{}
 
 	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "current"})
 	require.NoError(t, err)
-	require.Len(t, fake.calls, 1)
 
-	assert.Equal(t, "stale", fake.calls[0].value)
+	assert.Empty(t, fake.calls)
 	assert.Equal(t, 1, res.Skipped)
 
 	records := readFile(t, l).Records
@@ -148,28 +144,78 @@ func TestSweepPreservesValueBeingRepresented(t *testing.T) {
 	assert.Equal(t, "current", records[0].Value)
 }
 
-func TestSweepKeepsUnrelatedScopeProtectedWhileSuperseding(t *testing.T) {
-	l := newLedger(t, WithTTL(30*time.Minute))
-	superseded := "_acme-challenge.retry.example.com."
+func TestSweepKeepsSiblingOfValueBeingRepresented(t *testing.T) {
+	l := newLedger(t, WithTTL(time.Nanosecond))
+	scope := "_acme-challenge.retry.example.com."
+	stale := time.Now().UTC().Add(-time.Hour)
 
 	require.NoError(t, l.Add(context.Background(),
-		Record{Domain: "retry.example.com", Value: "stale", Scope: superseded},
-		Record{Domain: "other.example.com", Value: "live", Scope: "_acme-challenge.other.example.com."},
+		Record{Domain: "retry.example.com", Value: "current", Scope: scope, CreatedAt: stale},
+		Record{Domain: "*.retry.example.com", Value: "sibling", Scope: scope, CreatedAt: stale},
 	))
 
 	fake := &fakeCleaner{}
 
-	res, err := l.Sweep(context.Background(), fake, Intent{Scope: superseded, Value: "replacement"})
+	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "current"})
+	require.NoError(t, err)
+
+	assert.Empty(t, fake.calls)
+	assert.Equal(t, 2, res.Skipped)
+	assert.Len(t, readFile(t, l).Records, 2)
+}
+
+func TestSweepCleansExpiredValueBeforeRepresentingScope(t *testing.T) {
+	l := newLedger(t, WithTTL(time.Nanosecond))
+	scope := "_acme-challenge.stale.example.com."
+
+	require.NoError(t, l.Add(context.Background(),
+		Record{Domain: "stale.example.com", Value: "abandoned", Scope: scope, CreatedAt: time.Now().UTC().Add(-time.Hour)},
+	))
+
+	fake := &fakeCleaner{}
+
+	res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "fresh"})
 	require.NoError(t, err)
 	require.Len(t, fake.calls, 1)
 
-	assert.Equal(t, "stale", fake.calls[0].value)
-	assert.Equal(t, 1, res.Skipped)
+	assert.Equal(t, "abandoned", fake.calls[0].value)
+	assert.Len(t, res.Cleaned, 1)
+	assert.Empty(t, readFile(t, l).Records)
+}
+
+func TestRepeatedReservationOfSameValueStaysOneRecord(t *testing.T) {
+	l := newLedger(t, WithTTL(30*time.Minute))
+	scope := "_acme-challenge.repeat.example.com."
+	reservation := Record{Domain: "repeat.example.com", Value: "same", Scope: scope}
+	fake := &fakeCleaner{}
+
+	for range 5 {
+		res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "same"})
+		require.NoError(t, err)
+		require.Empty(t, res.Cleaned)
+		require.NoError(t, l.Add(context.Background(), reservation))
+	}
+
+	assert.Empty(t, fake.calls)
 
 	records := readFile(t, l).Records
 	require.Len(t, records, 1)
 
-	assert.Equal(t, "live", records[0].Value)
+	assert.Equal(t, "same", records[0].Value)
+}
+
+func TestRepeatedReservationExtendsExpiry(t *testing.T) {
+	l := newLedger(t, WithTTL(30*time.Minute))
+	reservation := Record{Domain: "repeat.example.com", Value: "same", Scope: "_acme-challenge.repeat.example.com."}
+
+	require.NoError(t, l.Add(context.Background(), reservation))
+
+	first := readFile(t, l).Records[0].ExpiresAt
+
+	time.Sleep(10 * time.Millisecond)
+	require.NoError(t, l.Add(context.Background(), reservation))
+
+	assert.True(t, readFile(t, l).Records[0].ExpiresAt.After(first))
 }
 
 func TestSweepBoundsProviderCall(t *testing.T) {
