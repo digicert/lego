@@ -90,6 +90,41 @@ func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl_v5,nolintli
 	assert.Equal(t, 2, res.Skipped)
 }
 
+func TestSweepCleansSupersededScopeImmediately(t *testing.T) { //nolint:wsl_v5,nolintlint
+	l := newLedger(t, WithTTL(30*time.Minute))
+	scope := "_acme-challenge.finaldnsmadeeasy.example.us."
+	require.NoError(t, l.Add(context.Background(),
+		Record{Domain: "finaldnsmadeeasy.example.us", Value: "first", Scope: scope},
+		Record{Domain: "finaldnsmadeeasy.example.us", Value: "second", Scope: scope},
+	))
+	fake := &fakeCleaner{}
+	res, err := l.Sweep(context.Background(), fake, scope)
+	require.NoError(t, err)
+	require.Len(t, fake.calls, 2)
+	assert.Equal(t, []string{"first", "second"}, []string{fake.calls[0].value, fake.calls[1].value})
+	assert.Len(t, res.Cleaned, 2)
+	assert.Zero(t, res.Skipped)
+	assert.Empty(t, readFile(t, l).Records)
+}
+
+func TestSweepKeepsUnrelatedScopeProtectedWhileSuperseding(t *testing.T) { //nolint:wsl_v5,nolintlint
+	l := newLedger(t, WithTTL(30*time.Minute))
+	superseded := "_acme-challenge.retry.example.com."
+	require.NoError(t, l.Add(context.Background(),
+		Record{Domain: "retry.example.com", Value: "stale", Scope: superseded},
+		Record{Domain: "other.example.com", Value: "live", Scope: "_acme-challenge.other.example.com."},
+	))
+	fake := &fakeCleaner{}
+	res, err := l.Sweep(context.Background(), fake, superseded)
+	require.NoError(t, err)
+	require.Len(t, fake.calls, 1)
+	assert.Equal(t, "stale", fake.calls[0].value)
+	assert.Equal(t, 1, res.Skipped)
+	records := readFile(t, l).Records
+	require.Len(t, records, 1)
+	assert.Equal(t, "live", records[0].Value)
+}
+
 func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl_v5,nolintlint
 	l, err := New(t.TempDir(), "slow", WithTTL(time.Nanosecond), WithCleanupTimeout(20*time.Millisecond))
 	require.NoError(t, err)

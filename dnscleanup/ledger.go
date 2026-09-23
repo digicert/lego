@@ -203,7 +203,16 @@ type SweepResult struct {
 	Skipped int
 }
 
-func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //nolint:gocyclo,wsl_v5,nolintlint
+// Sweep removes ledger records whose TTL has elapsed. A record is retained
+// while another record sharing its cleanup scope is still fresh, since
+// providers that delete a whole TXT rrset would destroy a challenge still
+// being validated.
+//
+// supersededScopes lifts that protection for scopes about to be presented
+// again, cleaning their records immediately rather than waiting out the TTL.
+// These scopes MUST be passed before Present, while the rrset still holds only
+// superseded values; passing them afterwards deletes the live challenge.
+func (l *Ledger) Sweep(ctx context.Context, c Cleaner, supersededScopes ...string) (SweepResult, error) { //nolint:gocyclo,wsl_v5,nolintlint
 	var res SweepResult
 
 	if c == nil {
@@ -224,16 +233,29 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 	now := time.Now().UTC()
 	kept := make([]Record, 0, len(f.Records))
 	pending := append([]Record(nil), f.Records...)
+	superseded := make(map[string]struct{}, len(supersededScopes))
+	for _, scope := range supersededScopes {
+		if scope = strings.TrimSpace(scope); scope != "" {
+			superseded[scope] = struct{}{}
+		}
+	}
+
 	protectedScopes := make(map[string]struct{})
 	for _, r := range pending {
+		scope := r.cleanupScope()
+		if _, replaced := superseded[scope]; replaced {
+			continue
+		}
 		if !r.due(now, l.ttl) {
-			protectedScopes[r.cleanupScope()] = struct{}{}
+			protectedScopes[scope] = struct{}{}
 		}
 	}
 
 	for i, r := range pending {
-		_, protected := protectedScopes[r.cleanupScope()]
-		if !r.due(now, l.ttl) || protected {
+		scope := r.cleanupScope()
+		_, replaced := superseded[scope]
+		_, protected := protectedScopes[scope]
+		if !replaced && (!r.due(now, l.ttl) || protected) {
 			res.Skipped++
 			kept = append(kept, r)
 
