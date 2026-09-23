@@ -209,29 +209,27 @@ type SweepResult struct {
 	Skipped int
 }
 
-// Intent is a TXT record this run is about to present. Its scope is treated as
-// superseded, so stale values there are removed immediately instead of waiting
-// out the TTL, while its own Value is preserved. A record being re-presented is
-// therefore never deleted, which is what makes skipping a redundant Present safe.
+// Intent is a TXT record this run is about to present. Its Value is never
+// deleted, and neither is anything else sharing its scope, because providers
+// that delete a whole TXT rrset would take the live record with them. That
+// guarantee is what makes skipping a redundant Present safe.
 type Intent struct {
 	Scope string
 	Value string
 }
 
 type sweepPlan struct {
-	replaced  map[string]struct{}
 	keep      map[string]struct{}
 	protected map[string]struct{}
 }
 
-// Sweep removes ledger records whose TTL has elapsed. A record is retained
-// while another record sharing its cleanup scope is still fresh, since
-// providers that delete a whole TXT rrset would destroy a challenge still
-// being validated.
+// Sweep removes ledger records whose TTL has elapsed. Expiry is the only reason
+// a record is deleted: presenting a scope never displaces values already
+// published there, because a concurrent order may still be validating them.
 //
-// Passing this run's intents lifts that protection for the scopes it is about
-// to present. Intents MUST be passed before Present, while the rrset still
-// holds only superseded values; passing them afterwards deletes live records.
+// A record is also retained while another record sharing its cleanup scope is
+// still fresh, or while this run intends to present a value in that scope,
+// since a provider that deletes a whole TXT rrset would destroy both.
 func (l *Ledger) Sweep(ctx context.Context, c Cleaner, intents ...Intent) (SweepResult, error) {
 	var res SweepResult
 
@@ -304,28 +302,25 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner, intents ...Intent) (Sweep
 
 func (l *Ledger) planSweep(pending []Record, now time.Time, intents []Intent) sweepPlan {
 	plan := sweepPlan{
-		replaced:  make(map[string]struct{}, len(intents)),
 		keep:      make(map[string]struct{}, len(intents)),
 		protected: make(map[string]struct{}),
 	}
 
 	for _, intent := range intents {
 		scope := strings.TrimSpace(intent.Scope)
-		if scope == "" {
+		if scope == "" || intent.Value == "" {
 			continue
 		}
 
-		plan.replaced[scope] = struct{}{}
-
-		if intent.Value != "" {
-			plan.keep[key(scope, intent.Value)] = struct{}{}
-		}
+		plan.keep[key(scope, intent.Value)] = struct{}{}
 	}
 
 	for _, r := range pending {
 		scope := r.cleanupScope()
 
-		if _, ok := plan.replaced[scope]; ok {
+		if _, ok := plan.keep[key(scope, r.Value)]; ok {
+			plan.protected[scope] = struct{}{}
+
 			continue
 		}
 
@@ -342,10 +337,6 @@ func (l *Ledger) retain(r Record, now time.Time, plan sweepPlan) bool {
 
 	if _, ok := plan.keep[key(scope, r.Value)]; ok {
 		return true
-	}
-
-	if _, ok := plan.replaced[scope]; ok {
-		return false
 	}
 
 	_, isProtected := plan.protected[scope]
