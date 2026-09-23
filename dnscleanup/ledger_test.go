@@ -183,6 +183,41 @@ func TestSweepCleansExpiredValueBeforeRepresentingScope(t *testing.T) {
 	assert.Empty(t, readFile(t, l).Records)
 }
 
+func TestRepeatedReservationOfSameValueStaysOneRecord(t *testing.T) {
+	l := newLedger(t, WithTTL(30*time.Minute))
+	scope := "_acme-challenge.repeat.example.com."
+	reservation := Record{Domain: "repeat.example.com", Value: "same", Scope: scope}
+	fake := &fakeCleaner{}
+
+	for range 5 {
+		res, err := l.Sweep(context.Background(), fake, Intent{Scope: scope, Value: "same"})
+		require.NoError(t, err)
+		require.Empty(t, res.Cleaned)
+		require.NoError(t, l.Add(context.Background(), reservation))
+	}
+
+	assert.Empty(t, fake.calls)
+
+	records := readFile(t, l).Records
+	require.Len(t, records, 1)
+
+	assert.Equal(t, "same", records[0].Value)
+}
+
+func TestRepeatedReservationExtendsExpiry(t *testing.T) {
+	l := newLedger(t, WithTTL(30*time.Minute))
+	reservation := Record{Domain: "repeat.example.com", Value: "same", Scope: "_acme-challenge.repeat.example.com."}
+
+	require.NoError(t, l.Add(context.Background(), reservation))
+
+	first := readFile(t, l).Records[0].ExpiresAt
+
+	time.Sleep(10 * time.Millisecond)
+	require.NoError(t, l.Add(context.Background(), reservation))
+
+	assert.True(t, readFile(t, l).Records[0].ExpiresAt.After(first))
+}
+
 func TestSweepBoundsProviderCall(t *testing.T) {
 	l, err := New(t.TempDir(), "slow", WithTTL(time.Nanosecond), WithCleanupTimeout(20*time.Millisecond))
 	require.NoError(t, err)
