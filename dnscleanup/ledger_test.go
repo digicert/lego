@@ -64,7 +64,7 @@ func readFile(t *testing.T, l *Ledger) ledgerFile {
 	return f
 }
 
-func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl
+func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl_v5
 	l := newLedger(t, WithTTL(time.Nanosecond))
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "example.com", Value: "exact-value"}))
 	fake := &fakeCleaner{}
@@ -76,7 +76,7 @@ func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl
 	assert.Empty(t, readFile(t, l).Records)
 }
 
-func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl
+func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl_v5
 	l := newLedger(t, WithTTL(30*time.Minute))
 	now := time.Now().UTC()
 	require.NoError(t, l.Add(context.Background(),
@@ -90,7 +90,7 @@ func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl
 	assert.Equal(t, 2, res.Skipped)
 }
 
-func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl
+func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl_v5
 	l, err := New(t.TempDir(), "slow", WithTTL(time.Nanosecond), WithCleanupTimeout(20*time.Millisecond))
 	require.NoError(t, err)
 	require.NoError(t, l.Add(context.Background(), Record{
@@ -104,7 +104,7 @@ func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl
 	assert.Contains(t, res.Failed[0].LastError, context.DeadlineExceeded.Error())
 }
 
-func TestSweepRetainsFailure(t *testing.T) { //nolint:wsl
+func TestSweepRetainsFailure(t *testing.T) { //nolint:wsl_v5
 	l := newLedger(t, WithTTL(time.Nanosecond))
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "bad.example.com", Value: "bad"}))
 	fake := &fakeCleaner{fail: func(string, string) error { return errors.New("failed") }}
@@ -117,7 +117,7 @@ func TestSweepRetainsFailure(t *testing.T) { //nolint:wsl
 	assert.Equal(t, "failed", records[0].LastError)
 }
 
-func TestAddRefreshesDuplicateReservation(t *testing.T) { //nolint:wsl
+func TestAddRefreshesDuplicateReservation(t *testing.T) { //nolint:wsl_v5
 	l := newLedger(t, WithTTL(30*time.Minute))
 	old := time.Now().UTC().Add(-time.Hour)
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "retry.example.com", Value: "retry", CreatedAt: old, Attempts: 2}))
@@ -128,21 +128,19 @@ func TestAddRefreshesDuplicateReservation(t *testing.T) { //nolint:wsl
 	assert.Zero(t, records[0].Attempts)
 }
 
-func TestConcurrentAddsDoNotLoseRecords(t *testing.T) { //nolint:wsl,modernize
+func TestConcurrentAddsDoNotLoseRecords(t *testing.T) { //nolint:wsl_v5
 	dir := t.TempDir()
 	var wg sync.WaitGroup
 	errCh := make(chan error, 8)
 	for i := range 8 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			l, err := New(dir, "ultradns")
 			if err != nil {
 				errCh <- err
 				return
 			}
 			errCh <- l.Add(context.Background(), Record{Domain: fmt.Sprintf("host%d.example.com", i), Value: fmt.Sprintf("value-%d", i)})
-		}()
+		})
 	}
 	wg.Wait()
 	close(errCh)

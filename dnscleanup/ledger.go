@@ -98,7 +98,7 @@ func WithCleanupTimeout(timeout time.Duration) Option {
 	}
 }
 
-func New(dir, provider string, opts ...Option) (*Ledger, error) { //nolint:wsl
+func New(dir, provider string, opts ...Option) (*Ledger, error) { //nolint:wsl_v5
 	name := sanitize(provider)
 	if name == "" {
 		return nil, errors.New("dnscleanup: provider name must not be empty")
@@ -142,7 +142,7 @@ func (l *Ledger) RefreshInterval() time.Duration {
 	return interval
 }
 
-func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:wsl
+func (l *Ledger) Add(ctx context.Context, records ...Record) error { //nolint:wsl_v5
 	if len(records) == 0 {
 		return nil
 	}
@@ -203,7 +203,7 @@ type SweepResult struct {
 	Skipped int
 }
 
-func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //nolint:gocyclo,wsl
+func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //nolint:gocyclo,wsl_v5
 	var res SweepResult
 
 	if c == nil {
@@ -273,7 +273,7 @@ func (l *Ledger) Sweep(ctx context.Context, c Cleaner) (SweepResult, error) { //
 	return res, l.save(f)
 }
 
-func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl
+func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl_v5
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -293,7 +293,7 @@ func (l *Ledger) lock(ctx context.Context) (func(), error) { //nolint:wsl
 	return func() { _ = fl.Unlock() }, nil
 }
 
-func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl
+func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl_v5
 	data, err := os.ReadFile(l.path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -318,7 +318,7 @@ func (l *Ledger) load() (*ledgerFile, error) { //nolint:wsl
 	return &f, nil
 }
 
-func (l *Ledger) save(f *ledgerFile) error { //nolint:wsl
+func (l *Ledger) save(f *ledgerFile) error { //nolint:wsl_v5
 	if f.Records == nil {
 		f.Records = []Record{}
 	}
@@ -369,7 +369,7 @@ func key(domain, value string) string {
 	return domain + "\x00" + value
 }
 
-func sanitize(provider string) string { //nolint:wsl
+func sanitize(provider string) string { //nolint:wsl_v5
 	provider = strings.TrimSpace(provider)
 	var b strings.Builder
 	for _, r := range provider {
