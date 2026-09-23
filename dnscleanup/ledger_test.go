@@ -1,4 +1,3 @@
-//nolint:wsl,modernize // Explicit goroutine lifecycle keeps cross-process lock assertions readable.
 package dnscleanup
 
 import (
@@ -65,7 +64,7 @@ func readFile(t *testing.T, l *Ledger) ledgerFile {
 	return f
 }
 
-func TestSweepPassesStoredValue(t *testing.T) {
+func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl
 	l := newLedger(t, WithTTL(time.Nanosecond))
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "example.com", Value: "exact-value"}))
 	fake := &fakeCleaner{}
@@ -77,7 +76,7 @@ func TestSweepPassesStoredValue(t *testing.T) {
 	assert.Empty(t, readFile(t, l).Records)
 }
 
-func TestSweepProtectsFreshCleanupScope(t *testing.T) {
+func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl
 	l := newLedger(t, WithTTL(30*time.Minute))
 	now := time.Now().UTC()
 	require.NoError(t, l.Add(context.Background(),
@@ -91,7 +90,7 @@ func TestSweepProtectsFreshCleanupScope(t *testing.T) {
 	assert.Equal(t, 2, res.Skipped)
 }
 
-func TestSweepBoundsProviderCall(t *testing.T) {
+func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl
 	l, err := New(t.TempDir(), "slow", WithTTL(time.Nanosecond), WithCleanupTimeout(20*time.Millisecond))
 	require.NoError(t, err)
 	require.NoError(t, l.Add(context.Background(), Record{
@@ -105,7 +104,7 @@ func TestSweepBoundsProviderCall(t *testing.T) {
 	assert.Contains(t, res.Failed[0].LastError, context.DeadlineExceeded.Error())
 }
 
-func TestSweepRetainsFailure(t *testing.T) {
+func TestSweepRetainsFailure(t *testing.T) { //nolint:wsl
 	l := newLedger(t, WithTTL(time.Nanosecond))
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "bad.example.com", Value: "bad"}))
 	fake := &fakeCleaner{fail: func(string, string) error { return errors.New("failed") }}
@@ -118,7 +117,7 @@ func TestSweepRetainsFailure(t *testing.T) {
 	assert.Equal(t, "failed", records[0].LastError)
 }
 
-func TestAddRefreshesDuplicateReservation(t *testing.T) {
+func TestAddRefreshesDuplicateReservation(t *testing.T) { //nolint:wsl
 	l := newLedger(t, WithTTL(30*time.Minute))
 	old := time.Now().UTC().Add(-time.Hour)
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "retry.example.com", Value: "retry", CreatedAt: old, Attempts: 2}))
@@ -129,7 +128,7 @@ func TestAddRefreshesDuplicateReservation(t *testing.T) {
 	assert.Zero(t, records[0].Attempts)
 }
 
-func TestConcurrentAddsDoNotLoseRecords(t *testing.T) {
+func TestConcurrentAddsDoNotLoseRecords(t *testing.T) { //nolint:wsl,modernize
 	dir := t.TempDir()
 	var wg sync.WaitGroup
 	errCh := make(chan error, 8)
