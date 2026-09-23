@@ -64,7 +64,7 @@ func readFile(t *testing.T, l *Ledger) ledgerFile {
 	return f
 }
 
-func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl_v5
+func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl_v5,nolintlint
 	l := newLedger(t, WithTTL(time.Nanosecond))
 	require.NoError(t, l.Add(context.Background(), Record{Domain: "example.com", Value: "exact-value"}))
 	fake := &fakeCleaner{}
@@ -76,7 +76,7 @@ func TestSweepPassesStoredValue(t *testing.T) { //nolint:wsl_v5
 	assert.Empty(t, readFile(t, l).Records)
 }
 
-func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl_v5
+func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl_v5,nolintlint
 	l := newLedger(t, WithTTL(30*time.Minute))
 	now := time.Now().UTC()
 	require.NoError(t, l.Add(context.Background(),
@@ -90,7 +90,7 @@ func TestSweepProtectsFreshCleanupScope(t *testing.T) { //nolint:wsl_v5
 	assert.Equal(t, 2, res.Skipped)
 }
 
-func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl_v5
+func TestSweepBoundsProviderCall(t *testing.T) { //nolint:wsl_v5,nolintlint
 	l, err := New(t.TempDir(), "slow", WithTTL(time.Nanosecond), WithCleanupTimeout(20*time.Millisecond))
 	require.NoError(t, err)
 	require.NoError(t, l.Add(context.Background(), Record{
